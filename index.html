@@ -90,6 +90,37 @@
         .breathing-circle {
             animation: pulse-breathe 8s ease-in-out infinite;
         }
+
+        /* [新增] 資訊 Modal 內容樣式 */
+        .info-modal-content h3 {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-top: 1.5rem; /* mt-6 */
+            margin-bottom: 0.75rem; /* mb-3 */
+            padding-bottom: 0.5rem; /* pb-2 */
+            border-bottom: 1px solid var(--border-color);
+        }
+        .info-modal-content p {
+            margin-bottom: 1rem; /* mb-4 */
+            line-height: 1.75; /* leading-relaxed */
+        }
+        .info-modal-content ul, .info-modal-content ol {
+            padding-left: 1.5rem; /* pl-6 */
+            margin-bottom: 1rem; /* mb-4 */
+        }
+        .info-modal-content ul {
+            list-style-type: disc;
+        }
+        .info-modal-content ol {
+            list-style-type: decimal;
+        }
+        .info-modal-content li {
+            margin-bottom: 0.75rem; /* mb-3 */
+        }
+        .info-modal-content i.ph-bold {
+            vertical-align: -0.125em; /* 微調圖示對齊 */
+        }
     </style>
 </head>
 <body class="flex flex-col items-center justify-start min-h-screen p-4 pt-8 sm:pt-12 pb-32">
@@ -100,6 +131,10 @@
         <!-- Header -->
         <header class="w-full theme-bg-card rounded-2xl shadow-lg p-4 sm:p-6 relative">
             <div class="absolute top-4 right-4 flex items-center gap-4">
+                <!-- [新增] 網站資訊按鈕 -->
+                <button data-modal-target="info-modal" class="theme-text-light hover:theme-text transition-colors" title="網站資訊">
+                    <i class="ph-bold ph-info text-xl"></i>
+                </button>
                 <button id="open-settings-modal-btn" data-modal-target="settings-modal" class="theme-text-light hover:theme-text transition-colors" title="設定">
                     <i class="ph-bold ph-gear text-xl"></i>
                 </button>
@@ -161,6 +196,32 @@
 
     <!-- ==================== Modals ==================== -->
     
+    <!-- [新增] 網站資訊 Modal -->
+    <div id="info-modal" class="modal hidden fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black bg-opacity-70">
+        <div class="modal-content theme-bg-card rounded-2xl shadow-xl w-full max-w-2xl p-6 sm:p-8 transform scale-95 flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                <h2 class="text-2xl font-bold theme-text" data-i18n="info.title">網站資訊</h2>
+                <button class="modal-close text-slate-400 hover:theme-text"><i class="ph-bold ph-x text-2xl"></i></button>
+            </div>
+            <!-- Tab Buttons -->
+            <div class="border-b theme-border flex-shrink-0">
+                <nav id="info-tabs" class="-mb-px flex space-x-4 sm:space-x-6 overflow-x-auto">
+                    <button data-tab="about" class="info-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm theme-primary border-current" data-i18n="info.tab.about">關於網站</button>
+                    <button data-tab="usage" class="info-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent theme-text-light hover:theme-text hover:border-gray-400" data-i18n="info.tab.usage">使用說明</button>
+                    <button data-tab="privacy" class="info-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent theme-text-light hover:theme-text hover:border-gray-400" data-i18n="info.tab.privacy">隱私權政策</button>
+                    <button data-tab="terms" class="info-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent theme-text-light hover:theme-text hover:border-gray-400" data-i18n="info.tab.terms">版權與免責</button>
+                </nav>
+            </div>
+            <!-- Tab Content -->
+            <div class="flex-grow overflow-y-auto pt-5 pr-4">
+                <div id="tab-content-about" class="info-tab-content info-modal-content"></div>
+                <div id="tab-content-usage" class="info-tab-content info-modal-content hidden"></div>
+                <div id="tab-content-privacy" class="info-tab-content info-modal-content hidden"></div>
+                <div id="tab-content-terms" class="info-tab-content info-modal-content hidden"></div>
+            </div>
+        </div>
+    </div>
+
     <!-- 雜記歷史 Modal -->
     <div id="history-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-70">
         <div class="modal-content theme-bg-card rounded-2xl shadow-xl w-full max-w-3xl flex flex-col max-h-[90vh] transform scale-95">
@@ -283,7 +344,9 @@
                 'chat-modal', 'chat-modal-title', 'end-chat-btn', 'chat-log', 'chat-loading-indicator', 'chat-form', 'chat-input', 'send-message-btn',
                 'chat-action-container', 'breathing-exercise-container', 'breathing-circle', 'breathing-text', 'breathing-instruction', 'stop-breathing-btn',
                 'settings-modal', 'model-input-modal', 'gemini-api-key', 'save-settings-btn', 'import-journals-btn', 'export-journals-btn', 'import-file-input',
-                'notification-container'
+                'notification-container',
+                // [新增] 資訊 Modal 相關元素
+                'info-modal', 'info-tabs', 'tab-content-about', 'tab-content-usage', 'tab-content-privacy', 'tab-content-terms'
             ];
             elementIds.forEach(id => {
                 const element = document.getElementById(id);
@@ -356,6 +419,44 @@
                     'notification.export_failed': '雜記匯出失敗，沒有可匯出的內容。',
                     'notification.import_success': '{count} 篇雜記已成功匯入！',
                     'notification.import_failed': '匯入失敗，請確認檔案格式是否正確。',
+                    // [新增] 資訊 Modal 相關文字
+                    'info.title': '網站資訊',
+                    'info.tab.about': '關於網站',
+                    'info.tab.usage': '使用說明',
+                    'info.tab.privacy': '隱私權政策',
+                    'info.tab.terms': '版權與免責',
+                    'info.content.about': `<h3>歡迎來到 AI 心理筆記</h3>
+                                       <p>這是一個專為您打造的私密心靈空間。我們相信，書寫是整理思緒、安頓內心的有效方式。在這裡，您可以隨時隨地記錄下您的心情、想法與感受，不必擔心被他人看見。</p>
+                                       <p>除了作為您的數位心情日記，我們還內建了一位溫暖的 AI 心理師——溫老師。當您感到迷惘、壓力大，或只是想找人聊聊時，隨時可以與他展開對話。他會運用專業的心理學知識，傾聽您的煩惱，並引導您從不同角度看待問題。</p>
+                                       <p>希望這個工具能成為您自我關懷旅程中的溫暖夥伴，陪伴您走過每一個高低起伏。</p>`,
+                    'info.content.usage': `<h3>如何使用這個工具？</h3>
+                                       <ol>
+                                           <li><strong><i class="ph-bold ph-pencil-line"></i> 寫下心情：</strong>在主畫面的輸入框中，自由書寫任何您想記錄的事，然後點擊「儲存今日雜記」。</li>
+                                           <li><strong><i class="ph-bold ph-book-open"></i> 回顧足跡：</strong>點擊「回顧心情足跡」按鈕，您可以查看、篩選所有過去的雜記，並刪除不再需要的紀錄。</li>
+                                           <li><strong><i class="ph-bold ph-chats-circle"></i> 與 AI 對話：</strong>點擊「AI 心理師」卡片下方的「開始對話」按鈕，即可與溫老師進行一對一的私密對談。</li>
+                                           <li><strong><i class="ph-bold ph-wind"></i> 呼吸練習：</strong>在與 AI 對話時，若感到焦慮，AI 可能會建議您進行呼吸練習。您也可以隨時請 AI 帶您練習，幫助您平靜下來。</li>
+                                           <li><strong><i class="ph-bold ph-gear"></i> 進行設定：</strong>點擊右上角的齒輪圖示，您可以設定您的 Gemini API 金鑰，這是與 AI 對話所必需的。</li>
+                                           <li><strong><i class="ph-bold ph-download-simple"></i> 資料管理：</strong>在「設定」中，您可以將所有的雜記匯出成一個 .json 檔案備份，或從備份檔案中匯入您先前的紀錄。<strong>您的資料，完全由您掌控。</strong></li>
+                                       </ol>`,
+                    'info.content.privacy': `<h3>您的隱私至關重要</h3>
+                                           <p>我們深知心理健康的私密性，因此本工具的設計將您的隱私放在第一位。請您放心，這裡是一個絕對安全的空間。</p>
+                                           <h3>純前端運作，資料不離身</h3>
+                                           <p>本網站是一個<strong>純客戶端（Client-side）應用程式</strong>。這意味著所有的程式碼都在您的瀏覽器中執行，我們沒有後端伺服器，也<strong>絕對不會</strong>儲存、傳輸或窺探您的任何資料。</p>
+                                           <ul>
+                                               <li><strong>心情雜記：</strong>您寫下的所有內容，都只儲存在您目前使用的瀏覽器的本地儲存空間（Local Storage）中。資料只存在您的裝置上，除非您手動清除瀏覽器資料，否則它會一直留在那裡。</li>
+                                               <li><strong>API 金鑰：</strong>您輸入的 Google Gemini API 金鑰同樣也只儲存在您瀏覽器的本地儲存空間中。它只會被用來直接與 Google 的 AI 服務進行驗證及對話，絕不會被傳送到我們的伺服器或任何第三方。</li>
+                                           </ul>
+                                           <p>簡單來說，您的所有秘密都安全地鎖在您自己的裝置裡。我們無法、也無意存取您的任何個人資訊。</p>`,
+                    'info.content.terms': `<h3>版權與免責聲明</h3>
+                                          <p>本網站的介面設計、圖像及程式碼版權為本站開發者所有。© 2025 AI 心理筆記. All Rights Reserved.</p>
+                                          <h3>免責聲明</h3>
+                                          <p>AI 心理筆記是一個旨在提供情緒支持與自我探索輔助的工具，但它<strong>不能取代專業的心理諮商或醫療診斷</strong>。</p>
+                                          <ul>
+                                              <li>AI（溫老師）提供的建議與分析，是基於大型語言模型的演算法生成，僅供參考。它可能無法完全理解您複雜的個人情況，也可能出現不準確或不恰當的回應。</li>
+                                              <li>請勿將 AI 的回覆視為專業醫療建議。若您正經歷嚴重的心理困擾、情緒危機，或有任何可能危及自己或他人的想法，<strong>請立即停止使用本工具，並尋求頁面下方提供的專業協助資源</strong>。</li>
+                                              <li>您應對自己在本網站上的所有行為，以及如何解讀和使用 AI 生成的內容負完全責任。對於因使用本工具而可能導致的任何直接或間接後果，本網站概不負責。</li>
+                                          </ul>
+                                          <p>使用本網站即表示您已閱讀、理解並同意以上條款。</p>`
                 }
             };
 
@@ -399,7 +500,12 @@
                 // Modal open/close listeners
                 document.querySelectorAll('[data-modal-target]').forEach(button => {
                     button.addEventListener('click', () => {
-                        const modal = document.getElementById(button.dataset.modalTarget);
+                        const modalId = button.dataset.modalTarget;
+                        const modal = document.getElementById(modalId);
+                        // [新增] 點擊時填充資訊 Modal
+                        if (modalId === 'info-modal') {
+                            populateInfoModal();
+                        }
                         openModal(modal);
                     });
                 });
@@ -409,6 +515,29 @@
                         closeModal(modal);
                     });
                 });
+
+                // [新增] 資訊 Modal 頁籤切換監聽
+                if (dom.infoTabs) {
+                    dom.infoTabs.addEventListener('click', (e) => {
+                        if (e.target.matches('.info-tab-btn')) {
+                            const tabId = e.target.dataset.tab;
+                            // 更新按鈕樣式
+                            dom.infoTabs.querySelectorAll('.info-tab-btn').forEach(btn => {
+                                btn.classList.remove('theme-primary', 'border-current');
+                                btn.classList.add('border-transparent', 'theme-text-light', 'hover:border-gray-400');
+                            });
+                            e.target.classList.add('theme-primary', 'border-current');
+                            e.target.classList.remove('border-transparent', 'theme-text-light', 'hover:border-gray-400');
+                            
+                            // 更新內容可見度
+                            document.querySelectorAll('.info-tab-content').forEach(content => {
+                                content.classList.add('hidden');
+                            });
+                            const activeContent = document.getElementById(`tab-content-${tabId}`);
+                            if (activeContent) activeContent.classList.remove('hidden');
+                        }
+                    });
+                }
             }
 
             // ==================== Core App Logic: UI Rendering ====================
@@ -520,6 +649,15 @@
                 renderJournalHistory();
                 openModal(dom.historyModal);
             }
+            
+            // [新增] 填充資訊 Modal 的內容
+            function populateInfoModal() {
+                const t = i18nData['zh-TW'];
+                dom.tabContentAbout.innerHTML = t['info.content.about'] || '';
+                dom.tabContentUsage.innerHTML = t['info.content.usage'] || '';
+                dom.tabContentPrivacy.innerHTML = t['info.content.privacy'] || '';
+                dom.tabContentTerms.innerHTML = t['info.content.terms'] || '';
+            }
 
             // ==================== Data Import/Export ====================
             function handleExportData() {
@@ -553,11 +691,10 @@
                            throw new Error('Invalid format');
                         }
                         
-                        // Removed the problematic confirm() dialog
                         saveJournalEntries(importedEntries);
                         showNotification(i18nData['zh-TW']['notification.import_success'].replace('{count}', importedEntries.length), 'success');
                         
-                        if (!dom.historyModal.classList.contains('hidden')) {
+                        if (dom.historyModal && !dom.historyModal.classList.contains('hidden')) {
                             renderJournalHistory();
                         }
                     } catch (error) {
@@ -779,14 +916,13 @@
                 const summaries = JSON.parse(localStorage.getItem(`companion_summaries_${PSYCHOLOGIST_ID}`)) || [];
                 const summaryText = summaries.length > 0 ? `這是我們過去對話的重點摘要：\n"""\n${summaries.slice(-3).map(s => s.content).join('\n\n')}\n"""` : "";
                 
-                // FIX: Escaped the backticks ` to prevent a syntax error.
                 const systemInstruction = `# 你的身份與行為準則
 - **身份:** 你是「${t['psychologist.name']}」，一位受過專業訓練、富有同理心的 AI 心理師。你的溝通風格溫暖、陽光、不帶批判，並擅長使用認知行為療法(CBT)和正向心理學的技巧。
 - **核心目標:** 透過開放式提問引導使用者自我覺察，幫助他們釐清思緒，找到自己的力量。必要時提供安慰，建議使用者如何調整情緒，在這當下不要繼續深入式提問，可以請使用者說說心情，而不是一直深入探究問題。
 - **特殊能力：引導式練習**
   - 當你從對話中偵測到使用者可能有壓力、焦慮或緊張等情緒時，你可以主動、溫和地提議進行一個引導式練習。使用者完成引導式練習後，請主動說話關心使用者情緒。
   - **提議格式:** 你必須用友善的問句來提議，並在句末附上特定的指令標籤。例如：「聽起來你現在壓力有點大，需要我帶你做一個簡單的呼吸練習，幫助你平靜下來嗎？練習完記得告訴我，或是你不想練習也可以告訴我，不要勉強自己 [action:breathing_exercise]」
-  - **可用標籤:** 目前僅支援 \\\`[action:breathing_exercise]\\\`。
+  - **可用標籤:** 目前僅支援 \`[action:breathing_exercise]\`。
 - **行為準則:**
     1. 以溫和、陽光、有同理心、正向的且不帶批判的語氣進行對話。
     2. 多使用開放式提問，可分段提問，請一次一個提問就好。（例如：「...那是什麼樣的感覺？」、「可以多說一點嗎？」）。
@@ -804,9 +940,8 @@
                 const lastUserInput = conversationHistory[conversationHistory.length - 1].content;
 
                 return {
-                    systemInstruction: systemInstruction,
-                    history: historyForApi,
-                    currentUserInput: userFacingPrompt + "\n\n使用者最新訊息：\n" + lastUserInput
+                    systemInstruction: { parts: [{ text: systemInstruction }] },
+                    contents: [ ...prompt.history, { role: 'user', parts: [{ text: prompt.currentUserInput }] } ]
                 };
             }
 
@@ -842,10 +977,10 @@ ${historyText}
                 let payload;
                 if (typeof prompt === 'string') {
                     payload = { contents: [{ parts: [{ text: prompt }] }] };
-                } else {
+                } else { // Assumes the new object structure
                     payload = {
-                        systemInstruction: { parts: [{ text: prompt.systemInstruction }] },
-                        contents: [ ...prompt.history, { role: 'user', parts: [{ text: prompt.currentUserInput }] } ]
+                        systemInstruction: prompt.systemInstruction,
+                        contents: [ ...prompt.history, prompt.contents[prompt.contents.length-1] ]
                     };
                 }
                 

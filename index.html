@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="meta.title">AI 心理筆記</title>
+    <meta name="description" data-i18n="meta.description" content="一個以您為中心的私密空間，書寫心情、回顧足跡，並在需要時與溫暖的 AI 心理師對話。">
+    <meta name="keywords" content="心理健康, 心情日記, AI心理師, 自我關懷, 呼吸練習, Mental Health, Mood Journal, AI Therapist">
+
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- 引入 Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <style>
+        :root {
+            --primary-color: #a0522d; /* Sienna - 暖棕色 */
+            --primary-color-hover: #8b4513; /* SaddleBrown */
+            --secondary-color: #c9a988; /* 柔和的棕褐色 */
+            --text-color: #3d2b1f; /* Dark Brown */
+            --text-light-color: #6b4f3a;
+            --bg-color: #f5f5dc; /* Beige - 米色背景 */
+            --card-bg-color: #fffaf0; /* FloralWhite - 卡片背景 */
+            --input-bg-color: #fdf5e6; /* OldLace - 輸入框背景 */
+            --border-color: #dcd0b8;
+        }
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        /* 主題色系應用 */
+        .theme-primary { color: var(--primary-color); }
+        .theme-bg-primary { background-color: var(--primary-color); }
+        .theme-bg-primary-hover:hover:not(:disabled) { background-color: var(--primary-color-hover); }
+        .theme-text { color: var(--text-color); }
+        .theme-text-light { color: var(--text-light-color); }
+        .theme-bg-card { background-color: var(--card-bg-color); }
+        .theme-bg-input { background-color: var(--input-bg-color); }
+        .theme-border { border-color: var(--border-color); }
+        .theme-ring-focus:focus { --tw-ring-color: var(--primary-color); }
+
+        /* Modal 動畫 */
+        .modal { transition: opacity 0.3s ease-in-out; }
+        .modal-content { transition: transform 0.3s ease-in-out; }
+
+        /* 讀取中 Spinner */
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .spinner { animation: spin 0.8s linear infinite; border-top-color: var(--primary-color); }
+
+        /* 提示訊息 */
+        #notification-container {
+            position: fixed; top: 1.25rem; left: 50%;
+            transform: translateX(-50%); z-index: 250;
+            width: 90%; max-width: 24rem;
+            display: flex; flex-direction: column; gap: 0.75rem; align-items: center;
+        }
+        .notification {
+            width: 100%; text-align: center;
+            padding: 0.75rem 1.5rem; border-radius: 9999px;
+            color: white; font-weight: 700;
+            opacity: 0; transform: translateY(-20px);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* 聊天泡泡 */
+        .chat-bubble-container { display: flex; align-items: flex-end; gap: 0.5rem; max-width: 90%; }
+        .chat-bubble { max-width: 100%; word-wrap: break-word; line-height: 1.6; }
+        .chat-bubble-user { background-color: var(--secondary-color); }
+        .chat-bubble-assistant { background-color: var(--primary-color); }
+        .chat-timestamp { font-size: 0.7rem; color: var(--text-light-color); flex-shrink: 0; }
+        
+        /* 卡片懸浮效果 */
+        .psychologist-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(160, 82, 45, 0.1), 0 4px 6px -2px rgba(160, 82, 45, 0.08);
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+        }
+        
+        /* 呼吸練習動畫 */
+        @keyframes pulse-breathe {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+        .breathing-circle {
+            animation: pulse-breathe 8s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-start min-h-screen p-4 pt-8 sm:pt-12 pb-32">
+
+    <!-- === 主內容區域 === -->
+    <main class="w-full max-w-3xl mx-auto flex flex-col gap-8">
+
+        <!-- Header -->
+        <header class="w-full theme-bg-card rounded-2xl shadow-lg p-4 sm:p-6 relative">
+            <div class="absolute top-4 right-4 flex items-center gap-4">
+                <button id="open-settings-modal-btn" data-modal-target="settings-modal" class="theme-text-light hover:theme-text transition-colors" title="設定">
+                    <i class="ph-bold ph-gear text-xl"></i>
+                </button>
+            </div>
+            <div class="text-center pt-8">
+                <i class="ph-duotone ph-leaf text-5xl sm:text-6xl theme-primary"></i>
+                <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black theme-text mt-4 mb-2" data-i18n="title">AI 心理筆記</h1>
+                <p class="theme-text-light text-sm mb-2" data-i18n="subtitle">一個懂你、傾聽你的私密心靈空間</p>
+            </div>
+        </header>
+
+        <!-- 安心提醒 -->
+        <section class="w-full bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-r-lg">
+            <h3 class="font-bold flex items-center gap-2"><i class="ph-fill ph-shield-warning"></i><span data-i18n="reminder.title">安心提醒</span></h3>
+            <p class="text-sm mt-1" data-i18n="reminder.content">我是一位 AI 心理師，能提供支持與引導，但無法取代專業醫療診斷。若您感到非常痛苦，請務必尋求<a href="#resources" class="font-bold underline hover:text-yellow-900" data-i18n="reminder.link">專業協助</a>。</p>
+        </section>
+
+        <!-- 心情雜記輸入 -->
+        <section class="w-full theme-bg-card rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-pencil-line theme-primary"></i> <span data-i18n="journal.title">寫下今天的心情</span></h2>
+            <form id="journal-form" class="space-y-5">
+                <div>
+                    <label for="journal-content" class="sr-only" data-i18n="journal.label">雜記內容</label>
+                    <textarea id="journal-content" rows="6" class="w-full theme-bg-input theme-border theme-text rounded-lg focus:ring-2 theme-ring-focus focus:border-transparent block p-4 text-base" data-i18n-placeholder="journal.placeholder" required></textarea>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <button id="open-history-modal-btn" type="button" class="w-full bg-white border theme-border hover:bg-gray-50 text-gray-700 font-bold text-lg py-3 px-4 rounded-lg shadow-md flex items-center justify-center gap-2 transition-transform active:scale-95">
+                        <i class="ph-fill ph-book-open"></i>
+                        <span data-i18n="journal.history_button">回顧心情足跡</span>
+                    </button>
+                    <button id="save-journal-btn" type="submit" class="w-full theme-bg-primary theme-bg-primary-hover text-white font-bold text-lg py-3 px-4 rounded-lg shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95">
+                        <i class="ph-fill ph-check-circle"></i>
+                        <span data-i18n="journal.save_button">儲存今日雜記</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- AI 心理師 -->
+        <section id="psychologist-section" class="w-full">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-user-focus theme-primary"></i> <span data-i18n="psychologist.title">AI 心理師</span></h2>
+            <div id="psychologist-card-container">
+                <!-- 心理師卡片將由 JS 生成 -->
+            </div>
+        </section>
+
+    </main>
+
+    <footer id="resources" class="text-center text-xs theme-text-light mt-12 w-full max-w-3xl mx-auto p-6 theme-bg-card rounded-2xl">
+        <h3 class="font-bold text-base mb-2" data-i18n="resources.title">專業心理協助資源</h3>
+        <p class="mb-4" data-i18n="resources.description">若您需要即時的專業協助，請隨時利用以下資源：</p>
+        <div class="flex justify-center gap-4 sm:gap-8 flex-wrap">
+            <a href="https://www.mohw.gov.tw/cp-16-77855-1.html" target="_blank" rel="noopener noreferrer" class="font-semibold hover:theme-primary" data-i18n="resources.line1">衛福部安心專線：1925</a>
+            <a href="https://www.life1995.org.tw/" target="_blank" rel="noopener noreferrer" class="font-semibold hover:theme-primary" data-i18n="resources.line2">生命線專線：1995</a>
+            <a href="https://www.cyc.org.tw/mp.asp?mp=1" target="_blank" rel="noopener noreferrer" class="font-semibold hover:theme-primary" data-i18n="resources.line3">張老師專線：1980</a>
+        </div>
+        <p class="mt-8 text-slate-500" data-i18n="footer.copyright">© 2025 AI 心理筆記. All Rights Reserved.</p>
+    </footer>
+
+    <!-- ==================== Modals ==================== -->
+    
+    <!-- 雜記歷史 Modal -->
+    <div id="history-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-70">
+        <div class="modal-content theme-bg-card rounded-2xl shadow-xl w-full max-w-3xl flex flex-col max-h-[90vh] transform scale-95">
+            <div class="flex justify-between items-center p-4 border-b theme-border flex-shrink-0">
+                <h2 class="text-lg font-bold theme-text flex items-center gap-2"><i class="ph-fill ph-book-open theme-primary"></i> <span data-i18n="history.title">我的心情足跡</span></h2>
+                <button class="modal-close text-slate-400 hover:theme-text"><i class="ph-bold ph-x text-2xl"></i></button>
+            </div>
+            <div class="p-4 flex-shrink-0 border-b theme-border">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div>
+                        <label for="start-date" class="text-sm font-medium" data-i18n="history.start_date">開始日期</label>
+                        <input type="date" id="start-date" class="w-full mt-1 theme-bg-input theme-border theme-text rounded-lg p-2">
+                    </div>
+                    <div>
+                        <label for="end-date" class="text-sm font-medium" data-i18n="history.end_date">結束日期</label>
+                        <input type="date" id="end-date" class="w-full mt-1 theme-bg-input theme-border theme-text rounded-lg p-2">
+                    </div>
+                    <button id="filter-journals-btn" class="w-full md:w-auto theme-bg-primary theme-bg-primary-hover text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2">
+                        <i class="ph-fill ph-funnel"></i> <span data-i18n="history.filter_button">篩選</span>
+                    </button>
+                </div>
+            </div>
+            <div id="journal-history-list" class="flex-grow p-4 space-y-4 overflow-y-auto">
+                <!-- 雜記卡片將由 JS 生成 -->
+            </div>
+            <p id="no-journals-message" class="text-center theme-text-light py-12 hidden" data-i18n="history.empty_message">這段期間沒有任何雜記喔！</p>
+        </div>
+    </div>
+
+    <!-- Chat Modal -->
+    <div id="chat-modal" class="modal hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black bg-opacity-70">
+        <div class="modal-content theme-bg-card rounded-2xl shadow-xl w-full max-w-2xl flex flex-col max-h-[90vh] transform scale-95">
+            <div class="flex justify-between items-center p-4 border-b theme-border flex-shrink-0">
+                <h2 id="chat-modal-title" class="text-lg font-bold theme-text">與 的對話</h2>
+                <button id="end-chat-btn" class="text-xs bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 rounded-lg flex items-center gap-2">
+                    <i class="ph-bold ph-x-circle"></i>
+                    <span data-i18n="chat.end_chat_button">結束對話並儲存</span>
+                </button>
+            </div>
+            <div id="chat-log" class="flex-grow p-4 space-y-4 overflow-y-auto">
+                <!-- Chat bubbles will be inserted here -->
+            </div>
+             <div id="chat-action-container" class="p-2 flex justify-center"></div>
+             <div id="breathing-exercise-container" class="hidden flex-col items-center justify-center p-8 gap-4 text-center">
+                <div class="breathing-circle w-32 h-32 bg-sky-300 rounded-full flex items-center justify-center">
+                    <span id="breathing-text" class="text-2xl font-bold text-white"></span>
+                </div>
+                <p id="breathing-instruction" class="text-lg theme-text-light"></p>
+                <button id="stop-breathing-btn" class="mt-4 text-sm text-slate-500 hover:text-slate-700" data-i18n="chat.stop_breathing">停止練習</button>
+            </div>
+            <div id="chat-loading-indicator" class="hidden items-center justify-center p-4">
+                <div class="flex items-center gap-2 theme-text-light">
+                    <div class="spinner w-5 h-5 border-2 rounded-full"></div>
+                    <span data-i18n="chat.typing">溫老師正在思考中...</span>
+                </div>
+            </div>
+            <div class="p-4 border-t theme-border flex-shrink-0">
+                <form id="chat-form" class="flex items-center gap-3">
+                    <input type="text" id="chat-input" class="w-full theme-bg-input theme-border theme-text rounded-lg focus:ring-2 theme-ring-focus focus:border-transparent block p-3" data-i18n-placeholder="chat.input_placeholder" required>
+                    <button id="send-message-btn" type="submit" class="p-3 theme-bg-primary theme-bg-primary-hover text-white font-bold rounded-lg">
+                        <i class="ph-fill ph-paper-plane-tilt text-xl"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <div class="modal-content theme-bg-card rounded-2xl shadow-xl w-full max-w-md p-6 sm:p-8 transform scale-95">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold theme-text flex items-center gap-2" data-i18n="settings.title"><i class="ph-fill ph-gear"></i> 設定</h2>
+                <button class="modal-close text-slate-400 hover:theme-text"><i class="ph-bold ph-x text-2xl"></i></button>
+            </div>
+            <div class="space-y-6">
+                 <div>
+                     <label for="model-input-modal" class="block mb-2 text-sm font-medium" data-i18n="settings.model_select">AI 模型名稱</label>
+                     <input type="text" id="model-input-modal" class="w-full theme-bg-input theme-border theme-text rounded-lg focus:ring-2 theme-ring-focus focus:border-transparent block p-3" data-i18n-placeholder="settings.model_placeholder">
+                 </div>
+                 <div>
+                     <label for="gemini-api-key" class="block mb-2 text-sm font-medium text-yellow-700" data-i18n="settings.api_key_label">您的 Google Gemini API 金鑰</label>
+                     <input type="password" id="gemini-api-key" class="w-full theme-bg-input theme-border theme-text rounded-lg focus:ring-2 theme-ring-focus focus:border-transparent block p-3" data-i18n-placeholder="settings.api_key_placeholder">
+                     <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-xs text-blue-600 hover:text-blue-500 mt-2 inline-block" data-i18n="settings.get_api_key">點此免費獲取金鑰 ↗</a>
+                 </div>
+                 <hr class="theme-border"/>
+                 <div>
+                    <h3 class="text-lg font-bold mb-3" data-i18n="settings.data_management">資料管理</h3>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button id="import-journals-btn" class="w-full flex-1 theme-bg-primary theme-bg-primary-hover text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2">
+                            <i class="ph-fill ph-upload-simple"></i><span data-i18n="settings.import_button">匯入雜記</span>
+                        </button>
+                        <input type="file" id="import-file-input" class="hidden" accept=".json">
+                        <button id="export-journals-btn" class="w-full flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2">
+                            <i class="ph-fill ph-download-simple"></i><span data-i18n="settings.export_button">匯出雜記</span>
+                        </button>
+                    </div>
+                 </div>
+                 <button id="save-settings-btn" class="w-full theme-bg-primary theme-bg-primary-hover text-white font-bold py-3 px-4 rounded-lg transition-colors" data-i18n="settings.save">儲存設定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notification-container"></div>
+
+    <script type="module">
+        document.addEventListener('DOMContentLoaded', () => {
+            // ==================== Global Config & State ====================
+            const PSYCHOLOGIST_ID = 'fixed_psychologist_01';
+            let conversationHistory = [];
+            let breathingInterval = null;
+
+            // ==================== DOM Elements Cache ====================
+            const dom = {};
+            const elementIds = [
+                'open-settings-modal-btn',
+                'journal-form', 'journal-content', 'save-journal-btn', 'open-history-modal-btn',
+                'psychologist-card-container',
+                'history-modal', 'start-date', 'end-date', 'filter-journals-btn', 'journal-history-list', 'no-journals-message',
+                'chat-modal', 'chat-modal-title', 'end-chat-btn', 'chat-log', 'chat-loading-indicator', 'chat-form', 'chat-input', 'send-message-btn',
+                'chat-action-container', 'breathing-exercise-container', 'breathing-circle', 'breathing-text', 'breathing-instruction', 'stop-breathing-btn',
+                'settings-modal', 'model-input-modal', 'gemini-api-key', 'save-settings-btn', 'import-journals-btn', 'export-journals-btn', 'import-file-input',
+                'notification-container'
+            ];
+            elementIds.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    const camelCaseId = id.replace(/-([a-z])/g, g => g[1].toUpperCase());
+                    dom[camelCaseId] = element;
+                } else {
+                    console.warn(`DOM element with ID "${id}" was not found.`);
+                }
+            });
+
+            // ==================== i18n Language Data ====================
+            const i18nData = {
+                'zh-TW': {
+                    'meta.title': 'AI 心理筆記',
+                    'meta.description': '一個以您為中心的私密空間，書寫心情、回顧足跡，並在需要時與溫暖的 AI 心理師對話。',
+                    'title': 'AI 心理筆記',
+                    'subtitle': '一個懂你、傾聽你的私密心靈空間',
+                    'footer.copyright': '© 2025 AI 心理筆記. All Rights Reserved.',
+                    'reminder.title': '安心提醒',
+                    'reminder.content': '我是一位 AI 心理師，能提供支持與引導，但無法取代專業醫療診斷。若您感到非常痛苦，請務必尋求',
+                    'reminder.link': '專業協助',
+                    'journal.title': '寫下今天的心情',
+                    'journal.label': '雜記內容',
+                    'journal.placeholder': '今天發生了什麼事？有什麼感覺或想法想記錄下來嗎？無論是開心或難過，這裡都是安全的空間...',
+                    'journal.save_button': '儲存今日雜記',
+                    'journal.history_button': '回顧心情足跡',
+                    'psychologist.title': 'AI 心理師',
+                    'psychologist.name': '溫老師',
+                    'psychologist.description': '一位受過專業訓練的 AI 心理師，專長是傾聽、同理，並引導您探索內心。',
+                    'psychologist.chat_button': '開始對話',
+                    'history.title': '我的心情足跡',
+                    'history.start_date': '開始日期',
+                    'history.end_date': '結束日期',
+                    'history.filter_button': '篩選',
+                    'history.empty_message': '這段期間沒有任何雜記喔！',
+                    'history.delete_button': '刪除此篇',
+                    'chat.modal.title': '與 {nickname} 的對話',
+                    'chat.end_chat_button': '結束對話並儲存',
+                    'chat.typing': '溫老師正在思考中...',
+                    'chat.input_placeholder': '說說你的感受...',
+                    'chat.start_breathing': '開始 4-7-8 呼吸練習',
+                    'chat.stop_breathing': '停止練習',
+                    'settings.title': '設定',
+                    'settings.model_select': 'AI 模型名稱',
+                    'settings.model_placeholder': '例如: gemini-1.5-flash-latest',
+                    'settings.api_key_label': '您的 Google Gemini API 金鑰',
+                    'settings.api_key_placeholder': '請在此貼上您的金鑰',
+                    'settings.get_api_key': '點此免費獲取金鑰 ↗',
+                    'settings.data_management': '資料管理',
+                    'settings.import_button': '匯入雜記',
+                    'settings.export_button': '匯出雜記',
+                    'settings.save': '儲存設定',
+                    'resources.title': '專業心理協助資源',
+                    'resources.description': '若您需要即時的專業協助，請隨時利用以下資源：',
+                    'resources.line1': '衛福部安心專線：1925',
+                    'resources.line2': '生命線專線：1995',
+                    'resources.line3': '張老師專線：1980',
+                    'notification.no_api_key': '請先在「設定」中輸入您的 Gemini API 金鑰！',
+                    'notification.settings_saved': '設定已儲存！',
+                    'notification.journal_saved': '雜記已成功儲存！',
+                    'notification.journal_deleted': '雜記已刪除。',
+                    'notification.journal_empty': '請先寫下一些內容再儲存喔！',
+                    'notification.saving_summary': '正在儲存對話記憶，請稍候...',
+                    'notification.summary_saved': '對話記憶已儲存！期待下次再聊。',
+                    'notification.summary_failed': '記憶儲存失敗：',
+                    'notification.generate_fail': '訊息傳送失敗：',
+                    'notification.no_input': '請輸入你想說的話。',
+                    'notification.export_success': '雜記已成功匯出！',
+                    'notification.export_failed': '雜記匯出失敗，沒有可匯出的內容。',
+                    'notification.import_success': '{count} 篇雜記已成功匯入！',
+                    'notification.import_failed': '匯入失敗，請確認檔案格式是否正確。',
+                }
+            };
+
+            // ==================== Initialization ====================
+            function initialize() {
+                const savedApiKey = localStorage.getItem('geminiApiKeyForJournal');
+                const savedModel = localStorage.getItem('selectedModelForJournal') || 'gemini-1.5-flash-latest';
+                if (savedApiKey) dom.geminiApiKey.value = savedApiKey;
+                dom.modelInputModal.value = savedModel;
+                
+                updateUIWithTranslations();
+                setupEventListeners();
+                renderPsychologistCard();
+            }
+
+            function updateUIWithTranslations() {
+                const t = i18nData['zh-TW'];
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.dataset.i18n;
+                    if (t[key]) el.textContent = t[key];
+                });
+                document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                    const key = el.dataset.i18nPlaceholder;
+                    if (t[key]) el.placeholder = t[key];
+                });
+            }
+
+            // ==================== Event Listeners ====================
+            function setupEventListeners() {
+                dom.journalForm.addEventListener('submit', handleSaveJournalEntry);
+                dom.openHistoryModalBtn.addEventListener('click', openHistoryModal);
+                dom.filterJournalsBtn.addEventListener('click', renderJournalHistory);
+                dom.chatForm.addEventListener('submit', handleSendMessage);
+                dom.endChatBtn.addEventListener('click', handleEndChat);
+                dom.saveSettingsBtn.addEventListener('click', saveSettings);
+                dom.exportJournalsBtn.addEventListener('click', handleExportData);
+                dom.importJournalsBtn.addEventListener('click', () => dom.importFileInput.click());
+                dom.importFileInput.addEventListener('change', handleImportData);
+                dom.stopBreathingBtn.addEventListener('click', stopBreathingExercise);
+
+                // Modal open/close listeners
+                document.querySelectorAll('[data-modal-target]').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const modal = document.getElementById(button.dataset.modalTarget);
+                        openModal(modal);
+                    });
+                });
+                document.querySelectorAll('.modal-close').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const modal = button.closest('.modal');
+                        closeModal(modal);
+                    });
+                });
+            }
+
+            // ==================== Core App Logic: UI Rendering ====================
+            function renderPsychologistCard() {
+                const t = i18nData['zh-TW'];
+                const card = document.createElement('div');
+                card.className = 'psychologist-card theme-bg-card rounded-xl p-5 flex flex-col sm:flex-row items-center gap-6 shadow-lg transition-all duration-200';
+                card.innerHTML = `
+                    <div class="flex-shrink-0">
+                        <i class="ph-duotone ph-user-circle-gear text-6xl sm:text-7xl theme-primary"></i>
+                    </div>
+                    <div class="text-center sm:text-left">
+                        <h3 class="text-xl font-bold theme-text">${t['psychologist.name']}</h3>
+                        <p class="text-sm theme-text-light mt-1 mb-4">${t['psychologist.description']}</p>
+                        <button class="start-chat-btn w-full sm:w-auto theme-bg-primary theme-bg-primary-hover text-white font-bold py-2 px-6 rounded-lg flex items-center justify-center gap-2 transition-transform active:scale-95">
+                            <i class="ph-fill ph-chats-circle"></i>
+                            <span>${t['psychologist.chat_button']}</span>
+                        </button>
+                    </div>
+                `;
+                card.querySelector('.start-chat-btn').addEventListener('click', handleStartChat);
+                dom.psychologistCardContainer.innerHTML = '';
+                dom.psychologistCardContainer.appendChild(card);
+            }
+
+            function renderJournalHistory() {
+                const entries = getJournalEntries();
+                const startDate = dom.startDate.value ? new Date(dom.startDate.value).setHours(0, 0, 0, 0) : null;
+                const endDate = dom.endDate.value ? new Date(dom.endDate.value).setHours(23, 59, 59, 999) : null;
+
+                const filteredEntries = entries.filter(entry => {
+                    const entryDate = new Date(entry.timestamp);
+                    if (startDate && entryDate < startDate) return false;
+                    if (endDate && entryDate > endDate) return false;
+                    return true;
+                });
+
+                dom.journalHistoryList.innerHTML = '';
+                if (filteredEntries.length === 0) {
+                    dom.noJournalsMessage.classList.remove('hidden');
+                    return;
+                }
+                dom.noJournalsMessage.classList.add('hidden');
+
+                const t = i18nData['zh-TW'];
+                filteredEntries.forEach(entry => {
+                    const card = document.createElement('div');
+                    card.className = 'theme-bg-input rounded-xl p-4 flex flex-col gap-2 shadow-sm border theme-border';
+                    const entryDate = new Date(entry.timestamp);
+                    const formattedDate = `${entryDate.getFullYear()}/${String(entryDate.getMonth() + 1).padStart(2, '0')}/${String(entryDate.getDate()).padStart(2, '0')}`;
+                    const formattedTime = entryDate.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+
+                    card.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <p class="font-semibold text-sm theme-primary">${formattedDate} ${formattedTime}</p>
+                            <button class="delete-journal-btn text-slate-400 hover:text-red-500" data-id="${entry.id}" title="${t['history.delete_button']}">
+                                <i class="ph-bold ph-trash text-lg"></i>
+                            </button>
+                        </div>
+                        <p class="text-base theme-text-light leading-relaxed break-words whitespace-pre-wrap">${entry.content}</p>
+                    `;
+                    card.querySelector('.delete-journal-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        handleDeleteJournal(entry.id);
+                        renderJournalHistory(); // Re-render after deletion
+                    });
+                    dom.journalHistoryList.appendChild(card);
+                });
+            }
+
+            // ==================== Journal Management ====================
+            function getJournalEntries() {
+                const entries = JSON.parse(localStorage.getItem('mood_journal_entries')) || [];
+                return entries.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            }
+
+            function saveJournalEntries(entries) {
+                localStorage.setItem('mood_journal_entries', JSON.stringify(entries));
+            }
+
+            function handleSaveJournalEntry(event) {
+                event.preventDefault();
+                const t = i18nData['zh-TW'];
+                const content = dom.journalContent.value.trim();
+                if (!content) {
+                    showNotification(t['notification.journal_empty'], 'error');
+                    return;
+                }
+                const entries = getJournalEntries();
+                const newEntry = {
+                    id: `journal_${Date.now()}`,
+                    content: content,
+                    timestamp: new Date().toISOString()
+                };
+                entries.push(newEntry);
+                saveJournalEntries(entries);
+                showNotification(t['notification.journal_saved'], 'success');
+                dom.journalForm.reset();
+            }
+
+            function handleDeleteJournal(id) {
+                let entries = getJournalEntries();
+                entries = entries.filter(e => e.id !== id);
+                saveJournalEntries(entries);
+                showNotification(i18nData['zh-TW']['notification.journal_deleted'], 'info');
+            }
+
+            function openHistoryModal() {
+                renderJournalHistory();
+                openModal(dom.historyModal);
+            }
+
+            // ==================== Data Import/Export ====================
+            function handleExportData() {
+                const entries = getJournalEntries();
+                const t = i18nData['zh-TW'];
+                if (entries.length === 0) {
+                    showNotification(t['notification.export_failed'], 'error');
+                    return;
+                }
+                const dataStr = JSON.stringify(entries, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                const date = new Date().toISOString().slice(0, 10);
+                link.download = `ai-journal-backup-${date}.json`;
+                link.href = url;
+                link.click();
+                URL.revokeObjectURL(url);
+                showNotification(t['notification.export_success'], 'success');
+            }
+
+            function handleImportData(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const importedEntries = JSON.parse(e.target.result);
+                        if (!Array.isArray(importedEntries) || (importedEntries.length > 0 && (!importedEntries[0].id || !importedEntries[0].content || !importedEntries[0].timestamp))) {
+                           throw new Error('Invalid format');
+                        }
+                        
+                        // Removed the problematic confirm() dialog
+                        saveJournalEntries(importedEntries);
+                        showNotification(i18nData['zh-TW']['notification.import_success'].replace('{count}', importedEntries.length), 'success');
+                        
+                        if (!dom.historyModal.classList.contains('hidden')) {
+                            renderJournalHistory();
+                        }
+                    } catch (error) {
+                        showNotification(i18nData['zh-TW']['notification.import_failed'], 'error');
+                        console.error("Import failed:", error);
+                    } finally {
+                        dom.importFileInput.value = '';
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            // ==================== Chat Logic ====================
+            async function handleStartChat() {
+                const t = i18nData['zh-TW'];
+                const apiKey = localStorage.getItem('geminiApiKeyForJournal');
+                if (!apiKey) {
+                    showNotification(t['notification.no_api_key'], 'error');
+                    openModal(dom.settingsModal);
+                    return;
+                }
+                conversationHistory = JSON.parse(localStorage.getItem(`companion_history_${PSYCHOLOGIST_ID}`)) || [];
+                const titleFormat = t['chat.modal.title'] || '與 {nickname} 的對話';
+                dom.chatModalTitle.textContent = titleFormat.replace('{nickname}', t['psychologist.name']);
+                renderChatLog();
+                openModal(dom.chatModal);
+
+                if (conversationHistory.length === 0) {
+                    await triggerAiOpening();
+                }
+            }
+
+            async function triggerAiOpening() {
+                setChatLoading(true);
+                try {
+                    const prompt = createOpeningPrompt();
+                    const aiResponse = await callGeminiApi(prompt);
+                    addMessageToChat('assistant', aiResponse);
+                } catch (error) {
+                    console.error("AI opening failed:", error);
+                    showNotification(i18nData['zh-TW']['notification.generate_fail'] + error.message, 'error');
+                } finally {
+                    setChatLoading(false);
+                }
+            }
+            
+            async function handleSendMessage(event) {
+                event.preventDefault();
+                const userInput = dom.chatInput.value.trim();
+                if (!userInput) {
+                    showNotification(i18nData['zh-TW']['notification.no_input'], 'error');
+                    return;
+                }
+                
+                addMessageToChat('user', userInput);
+                dom.chatInput.value = '';
+                setChatLoading(true);
+                
+                try {
+                    const prompt = createChatPrompt();
+                    const aiResponse = await callGeminiApi(prompt);
+                    addMessageToChat('assistant', aiResponse);
+                } catch (error) {
+                    console.error("Generation failed:", error);
+                    showNotification(i18nData['zh-TW']['notification.generate_fail'] + error.message, 'error');
+                    conversationHistory.pop(); // Remove user message if AI fails
+                    renderChatLog();
+                } finally {
+                    setChatLoading(false);
+                }
+            }
+
+            function addMessageToChat(role, content) {
+                conversationHistory.push({ role, content, timestamp: new Date().toISOString() });
+                localStorage.setItem(`companion_history_${PSYCHOLOGIST_ID}`, JSON.stringify(conversationHistory));
+                renderChatLog();
+            }
+
+            async function handleEndChat() {
+                const t = i18nData['zh-TW'];
+                if (conversationHistory.length > 1) { // Only save summary if there's a meaningful conversation
+                    showNotification(t['notification.saving_summary'], 'info');
+                    try {
+                        const summaryPrompt = createSummaryPrompt();
+                        const summaryContent = await callGeminiApi(summaryPrompt);
+                        const newSummary = {
+                            content: summaryContent,
+                            startTime: conversationHistory[0].timestamp,
+                            endTime: conversationHistory[conversationHistory.length - 1].timestamp
+                        };
+                        let summaries = JSON.parse(localStorage.getItem(`companion_summaries_${PSYCHOLOGIST_ID}`)) || [];
+                        summaries.push(newSummary);
+                        localStorage.setItem(`companion_summaries_${PSYCHOLOGIST_ID}`, JSON.stringify(summaries));
+                        showNotification(t['notification.summary_saved'], 'success');
+                    } catch (error) {
+                        console.error("Summary failed:", error);
+                        showNotification(t['notification.summary_failed'] + error.message, 'error');
+                    }
+                }
+                
+                localStorage.removeItem(`companion_history_${PSYCHOLOGIST_ID}`);
+                conversationHistory = [];
+                
+                closeModal(dom.chatModal);
+                stopBreathingExercise();
+            }
+
+
+            function renderChatLog() {
+                dom.chatLog.innerHTML = '';
+                dom.chatActionContainer.innerHTML = ''; // Clear action buttons
+
+                conversationHistory.forEach(msg => {
+                    const wrapper = document.createElement('div');
+                    const isUser = msg.role === 'user';
+                    wrapper.className = `flex w-full ${isUser ? 'justify-end' : 'justify-start'}`;
+                    
+                    const bubbleContainer = document.createElement('div');
+                    bubbleContainer.className = 'chat-bubble-container';
+                    if (isUser) bubbleContainer.classList.add('flex-row-reverse');
+
+                    const bubble = document.createElement('div');
+                    bubble.className = 'chat-bubble p-3 rounded-2xl';
+                    bubble.classList.add(isUser ? 'chat-bubble-user' : 'chat-bubble-assistant', 'text-white');
+                    
+                    const actionRegex = /\[action:(\w+)\]/;
+                    const match = msg.content.match(actionRegex);
+                    
+                    if (match && msg.role === 'assistant') {
+                        const actionType = match[1];
+                        bubble.textContent = msg.content.replace(actionRegex, '').trim();
+                        renderActionButton(actionType);
+                    } else {
+                        bubble.textContent = msg.content;
+                    }
+
+                    const timestamp = document.createElement('div');
+                    timestamp.className = 'chat-timestamp pb-1';
+                    timestamp.textContent = formatTimestamp(msg.timestamp);
+
+                    bubbleContainer.appendChild(bubble);
+                    bubbleContainer.appendChild(timestamp);
+                    wrapper.appendChild(bubbleContainer);
+                    dom.chatLog.appendChild(wrapper);
+                });
+                dom.chatLog.scrollTop = dom.chatLog.scrollHeight;
+            }
+
+            function renderActionButton(actionType) {
+                const t = i18nData['zh-TW'];
+                if (actionType === 'breathing_exercise') {
+                    const button = document.createElement('button');
+                    button.className = 'theme-bg-primary theme-bg-primary-hover text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-transform active:scale-95';
+                    button.innerHTML = `<i class="ph-fill ph-wind"></i> <span>${t['chat.start_breathing']}</span>`;
+                    button.onclick = startBreathingExercise;
+                    dom.chatActionContainer.innerHTML = ''; // Clear previous actions
+                    dom.chatActionContainer.appendChild(button);
+                }
+            }
+
+            function setChatLoading(isLoading) {
+                dom.chatLoadingIndicator.classList.toggle('hidden', !isLoading);
+                dom.chatLoadingIndicator.classList.toggle('flex', isLoading);
+                dom.sendMessageBtn.disabled = isLoading;
+                dom.chatInput.disabled = isLoading;
+                if (isLoading) {
+                    dom.chatLog.scrollTop = dom.chatLog.scrollHeight;
+                    dom.chatActionContainer.innerHTML = ''; // Hide action buttons while loading
+                }
+            }
+
+            // ==================== Breathing Exercise Logic ====================
+            function startBreathingExercise() {
+                dom.chatActionContainer.innerHTML = ''; // Hide the button
+                dom.breathingExerciseContainer.classList.remove('hidden');
+                dom.breathingExerciseContainer.classList.add('flex');
+
+                const steps = [
+                    { duration: 4000, text: '吸氣', instruction: '從鼻子緩慢吸氣 4 秒' },
+                    { duration: 7000, text: '閉氣', instruction: '溫柔地屏住呼吸 7 秒' },
+                    { duration: 8000, text: '吐氣', instruction: '從嘴巴完全吐氣 8 秒' },
+                ];
+                let currentStep = 0;
+
+                function runStep() {
+                    dom.breathingText.textContent = steps[currentStep].text;
+                    dom.breathingInstruction.textContent = steps[currentStep].instruction;
+                    breathingInterval = setTimeout(() => {
+                        currentStep = (currentStep + 1) % steps.length;
+                        runStep();
+                    }, steps[currentStep].duration);
+                }
+                runStep();
+            }
+
+            function stopBreathingExercise() {
+                if (breathingInterval) {
+                    clearTimeout(breathingInterval);
+                    breathingInterval = null;
+                }
+                dom.breathingExerciseContainer.classList.add('hidden');
+                dom.breathingExerciseContainer.classList.remove('flex');
+            }
+
+            // ==================== AI Prompt Engineering ====================
+            function createOpeningPrompt() {
+                const t = i18nData['zh-TW'];
+                const journalEntries = getJournalEntries().slice(0, 3);
+                const recentJournalText = journalEntries.length > 0 ?
+                    `這是使用者最近的幾篇雜記，請參考：\n"""\n${journalEntries.map(e => e.content).join('\n---\n')}\n"""` :
+                    "使用者還沒有寫過雜記。";
+                return `你是 ${t['psychologist.name']}，一位溫暖的 AI 心理師。你的任務是開啟一段對話。${recentJournalText} 請根據這些雜記（如果有的話），或單純地開啟對話，溫和地問候使用者，並提出一個開放式問題，例如「今天感覺怎麼樣？」或「最近有什麼特別想聊聊的嗎？」。你的開場白必須包含這句提醒：「提醒您，我們的對話能提供支持，但無法取代專業醫療。」請直接輸出你要說的話。`;
+            }
+
+            function createChatPrompt() {
+                const t = i18nData['zh-TW'];
+                const journalEntries = getJournalEntries().slice(0, 5);
+                const recentJournalText = journalEntries.length > 0 ? `這是使用者最近的雜記：\n"""\n${journalEntries.map(entry => `[${formatDateTime(entry.timestamp)} 寫的雜記]:\n${entry.content}`).join('\n\n---\n\n')}\n"""` : "使用者還沒有寫過任何雜記。";
+                const summaries = JSON.parse(localStorage.getItem(`companion_summaries_${PSYCHOLOGIST_ID}`)) || [];
+                const summaryText = summaries.length > 0 ? `這是我們過去對話的重點摘要：\n"""\n${summaries.slice(-3).map(s => s.content).join('\n\n')}\n"""` : "";
+                
+                // FIX: Escaped the backticks ` to prevent a syntax error.
+                const systemInstruction = `# 你的身份與行為準則
+- **身份:** 你是「${t['psychologist.name']}」，一位受過專業訓練、富有同理心的 AI 心理師。你的溝通風格溫暖、不帶批判，並擅長使用認知行為療法(CBT)和正向心理學的技巧。
+- **核心目標:** 透過開放式提問引導使用者自我覺察，幫助他們釐清思緒，找到自己的力量。
+- **特殊能力：引導式練習**
+  - 當你從對話中偵測到使用者可能有壓力、焦慮或緊張等情緒時，你可以主動、溫和地提議進行一個引導式練習。
+  - **提議格式:** 你必須用友善的問句來提議，並在句末附上特定的指令標籤。例如：「聽起來你現在壓力有點大，需要我帶你做一個簡單的呼吸練習，幫助你平靜下來嗎？ [action:breathing_exercise]」
+  - **可用標籤:** 目前僅支援 \\\`[action:breathing_exercise]\\\`。
+- **行為準則:**
+    1. 以溫和、有同理心且不帶批判的語氣進行對話。
+    2. 多使用開放式提問（例如：「...那是什麼樣的感覺？」、「可以多說一點嗎？」）。
+- **絕對禁止:**
+    - 不准說自己是 AI 或語言模型。
+    - 不准給出醫療建議或診斷。
+    - 除非是開場白，否則不要重複「我無法取代專業醫療」的提醒。`;
+    
+                const userFacingPrompt = `${recentJournalText} ${summaryText} 請根據以上資料，自然地回應我剛才說的話。`;
+                const historyForApi = conversationHistory.map(msg => ({
+                    role: msg.role === 'user' ? 'user' : 'model',
+                    parts: [{ text: msg.content.replace(/\[action:\w+\]/g, '').trim() }]
+                })).slice(0, -1);
+                const lastUserInput = conversationHistory[conversationHistory.length - 1].content;
+
+                return {
+                    systemInstruction: systemInstruction,
+                    history: historyForApi,
+                    currentUserInput: userFacingPrompt + "\n\n使用者最新訊息：\n" + lastUserInput
+                };
+            }
+
+            function createSummaryPrompt() {
+                const historyText = conversationHistory.map(msg => {
+                    const role = msg.role === 'user' ? '[我]' : '[心理師]';
+                    const content = msg.content.replace(/\[action:\w+\]/g, '').trim();
+                    return `${role}: ${content}`;
+                }).join('\n');
+                return `# 指令
+請你扮演一位記憶大師，閱讀以下的諮商對話紀錄。
+你的任務是為「我」的角色，寫一段簡潔的、第一人稱的摘要（2-3句話）。這段摘要將用於下一次對話前，幫助心理師快速回憶起這次聊天的重點。
+# 需要摘要的重點
+- 我們聊了哪些關鍵話題或事件？
+- 我透露了哪些核心的情緒、感受或想法？
+- 我們有沒有達成什麼新的領悟或下一步的行動計畫？
+# 輸出要求
+- 使用「我」的視角來寫。
+- 風格必須是總結性的，像是在寫筆記。
+- 必須非常簡潔，最多不超過100個字。
+- 直接輸出摘要內容，不要有任何前言或結語。
+# 對話紀錄
+"""
+${historyText}
+"""`;
+            }
+            
+            async function callGeminiApi(prompt) {
+                const apiKey = localStorage.getItem('geminiApiKeyForJournal');
+                const model = localStorage.getItem('selectedModelForJournal') || 'gemini-1.5-flash-latest';
+                const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+                
+                let payload;
+                if (typeof prompt === 'string') {
+                    payload = { contents: [{ parts: [{ text: prompt }] }] };
+                } else {
+                    payload = {
+                        systemInstruction: { parts: [{ text: prompt.systemInstruction }] },
+                        contents: [ ...prompt.history, { role: 'user', parts: [{ text: prompt.currentUserInput }] } ]
+                    };
+                }
+                
+                payload.safetySettings = [
+                    { "category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE" },
+                    { "category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE" },
+                    { "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE" },
+                    { "category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE" }
+                ];
+                
+                const response = await fetch(apiEndpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || `Request failed, status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts.length > 0) {
+                    return data.candidates[0].content.parts[0].text.trim();
+                } else {
+                    const finishReason = data.candidates?.[0]?.finishReason;
+                    if (finishReason === 'SAFETY') throw new Error('內容因安全設定被阻擋。');
+                    throw new Error(finishReason ? `生成中止: ${finishReason}` : 'API 回應中沒有有效內容。');
+                }
+            }
+
+            // ==================== Helpers & UI & Modals ====================
+            function formatTimestamp(isoString) {
+                if (!isoString) return '';
+                return new Date(isoString).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
+            }
+
+            function formatDateTime(isoString) {
+                if (!isoString) return '';
+                return new Date(isoString).toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).replace(/\//g, '-');
+            }
+            
+            function saveSettings() {
+                localStorage.setItem('geminiApiKeyForJournal', dom.geminiApiKey.value.trim());
+                localStorage.setItem('selectedModelForJournal', dom.modelInputModal.value.trim() || 'gemini-1.5-flash-latest');
+                closeModal(dom.settingsModal);
+                showNotification(i18nData['zh-TW']['notification.settings_saved'], 'success');
+            }
+
+            function openModal(modal) {
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    setTimeout(() => {
+                        modal.classList.add('opacity-100');
+                        modal.querySelector('.modal-content').classList.remove('scale-95');
+                        modal.querySelector('.modal-content').classList.add('scale-100');
+                    }, 10);
+                }
+            }
+
+            function closeModal(modal) {
+                if (modal) {
+                    modal.querySelector('.modal-content').classList.remove('scale-100');
+                    modal.querySelector('.modal-content').classList.add('scale-95');
+                    modal.classList.remove('opacity-100');
+                    setTimeout(() => modal.classList.add('hidden'), 300);
+                }
+            }
+
+            function showNotification(message, type = 'success') {
+                const notification = document.createElement('div');
+                const colors = { success: '#22c55e', info: '#3b82f6', error: '#ef4444' };
+                notification.className = 'notification';
+                notification.textContent = message;
+                notification.style.backgroundColor = colors[type] || colors.info;
+                dom.notificationContainer.appendChild(notification);
+                setTimeout(() => {
+                    notification.style.opacity = '1';
+                    notification.style.transform = 'translateY(0)';
+                }, 10);
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateY(-20px)';
+                    notification.addEventListener('transitionend', () => notification.remove());
+                }, 4000);
+            }
+
+            // ==================== Initial Load ====================
+            initialize();
+        });
+    </script>
+</body>
+</html>
+
+

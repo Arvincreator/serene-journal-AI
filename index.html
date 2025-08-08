@@ -126,8 +126,14 @@
 
         <!-- Header -->
         <header class="w-full theme-bg-card rounded-2xl shadow-lg p-4 sm:p-6 relative">
+            <!-- [新增] 作者其他應用按鈕 -->
+            <div class="absolute top-4 left-4 sm:left-6">
+                <button data-modal-target="other-apps-modal" class="text-xs sm:text-sm theme-text-light hover:theme-text transition-colors flex items-center gap-1" data-i18n="header.other_apps">
+                    <i class="ph-bold ph-app-window"></i>
+                    <span>作者開發的其他應用</span>
+                </button>
+            </div>
             <div class="absolute top-4 right-4 flex items-center gap-4">
-                <!-- [新增] 贊助按鈕 -->
                 <a href="https://buymeacoffee.com/arvincreator" target="_blank" rel="noopener noreferrer" class="theme-text-light hover:theme-text transition-colors" data-i18n-title="header.sponsor">
                     <i class="ph-bold ph-coffee text-xl"></i>
                 </a>
@@ -138,7 +144,7 @@
                     <i class="ph-bold ph-gear text-xl"></i>
                 </button>
             </div>
-            <div class="text-center pt-8">
+            <div class="text-center pt-12 sm:pt-8">
                 <i class="ph-duotone ph-leaf text-5xl sm:text-6xl theme-primary"></i>
                 <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black theme-text mt-4 mb-2" data-i18n="title">AI 心理筆記</h1>
                 <p class="theme-text-light text-sm mb-2" data-i18n="subtitle">一個懂你、傾聽你的私密心靈空間</p>
@@ -205,7 +211,62 @@
 
     <!-- ==================== Modals ==================== -->
 
-    <!-- [新增] 贊助提示 Modal -->
+    <!-- [新增] 作者其他應用 Modal -->
+    <div id="other-apps-modal" class="modal hidden fixed inset-0 z-[85] flex items-center justify-center p-4 bg-black bg-opacity-70">
+        <div class="modal-content theme-bg-card rounded-2xl shadow-xl w-full max-w-2xl p-6 sm:p-8 transform scale-95 flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                <h2 class="text-2xl font-bold theme-text" data-i18n="other_apps.title">@Arvin Chen 開發 Web App 一覽</h2>
+                <button class="modal-close text-slate-400 hover:theme-text"><i class="ph-bold ph-x text-2xl"></i></button>
+            </div>
+            <div class="flex-grow overflow-y-auto pt-2 pr-4 modal-prose">
+                <style>
+                    .app-list h3 { margin-top: 1.5rem; display: flex; align-items: center; gap: 0.75rem; font-size: 1.1rem; }
+                    .app-list ol { padding-left: 1rem; list-style: none; }
+                    .app-list li { margin-bottom: 0.85rem; }
+                    .app-list a { font-weight: 500; text-decoration: none; color: var(--text-color); }
+                    .app-list a:hover { text-decoration: underline; color: var(--primary-color); }
+                    .app-list .link-icon { color: var(--text-light-color); font-size: 0.9em; vertical-align: middle; margin-left: 4px; transition: color 0.2s; }
+                    .app-list a:hover .link-icon { color: var(--primary-color); }
+                </style>
+                <div class="app-list">
+                    <h3><i class="ph-bold ph-translate theme-primary"></i> 語言學習系列</h3>
+                    <ol>
+                        <li><a href="https://ai-english-exercises.pages.dev" target="_blank" rel="noopener noreferrer">1. AI 英語練習器 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                        <li><a href="https://ai-nihongo-exercise.pages.dev" target="_blank" rel="noopener noreferrer">2. AI 日語練習器 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                        <li><a href="https://ai-english-exercises.pages.dev" target="_blank" rel="noopener noreferrer">3. AI 中文練習器（給外國人） <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                    </ol>
+            
+                    <h3><i class="ph-bold ph-books theme-primary"></i> 創作＆內容生成工具 (🌟共用會員)</h3>
+                    <ol>
+                        <li><a href="https://serial-novel-generator.pages.dev" target="_blank" rel="noopener noreferrer">1. 🌟 連載小說產生器 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                        <li><a href="https://ai-prompt-generator-108.pages.dev" target="_blank" rel="noopener noreferrer">2. 🌟 AI 不偷懶提示詞生成器 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                        <li><a href="https://meme-reply-generator.pages.dev" target="_blank" rel="noopener noreferrer">3. 🌟 網路回梗生成器 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                    </ol>
+            
+                    <h3><i class="ph-bold ph-game-controller theme-primary"></i> 遊戲類 (🌟部分共用會員)</h3>
+                    <ol>
+                        <li><a href="https://ai-war-tactics.pages.dev" target="_blank" rel="noopener noreferrer">1. AI 戰棋策略遊戲 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                        <li><a href="https://text-rpg-generator.pages.dev" target="_blank" rel="noopener noreferrer">2. 🌟 文字冒險遊戲 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                    </ol>
+            
+                    <h3><i class="ph-bold ph-globe-hemisphere-west theme-primary"></i> 助理型工具 (🌟共用會員)</h3>
+                    <ol>
+                        <li><a href="https://ai-travel-guide.pages.dev" target="_blank" rel="noopener noreferrer">1. 🌟 AI 旅遊導覽員 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                        <li><a href="https://ai-trip-planner.pages.dev" target="_blank" rel="noopener noreferrer">2. 🌟 AI 海外旅遊規劃神器 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                        <li><a href="https://your-ai-chatbot.pages.dev" target="_blank" rel="noopener noreferrer">3. 🌟 你的 AI 親友情人聊天器 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                        <li><a href="https://serene-journal-ai.pages.dev" target="_blank" rel="noopener noreferrer">4.   AI 心理筆記 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                    </ol>
+            
+                    <h3><i class="ph-bold ph-timer theme-primary"></i> 生產力工具</h3>
+                    <ol>
+                        <li><a href="https://banter-pomodoro.pages.dev" target="_blank" rel="noopener noreferrer">1. 碎嘴蕃茄鐘 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 贊助提示 Modal -->
     <div id="sponsorship-modal" class="modal hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black bg-opacity-70">
         <div class="modal-content theme-bg-card rounded-2xl shadow-xl w-full max-w-md p-6 sm:p-8 transform scale-95 text-center">
             <i class="ph-duotone ph-coffee text-5xl theme-primary mb-4"></i>
@@ -376,8 +437,9 @@
                 'notification-container',
                 'info-modal', 'info-tabs', 'tab-content-about', 'tab-content-usage', 'tab-content-privacy', 'tab-content-terms',
                 'open-mood-dashboard-btn', 'mood-dashboard-modal', 'mood-dashboard-content',
-                // [新增] 贊助相關元素
-                'sponsorship-modal', 'sponsor-confirm-btn', 'sponsor-decline-btn'
+                'sponsorship-modal', 'sponsor-confirm-btn', 'sponsor-decline-btn',
+                // [新增] 其他應用 Modal
+                'other-apps-modal'
             ];
             elementIds.forEach(id => {
                 const element = document.getElementById(id);
@@ -399,9 +461,12 @@
                     'header.sponsor': '贊助開發者',
                     'header.info': '網站資訊',
                     'header.settings': '設定',
+                    // [新增] 其他應用 i18n
+                    'header.other_apps': '作者開發的其他應用',
+                    'other_apps.title': '@Arvin Chen 開發 Web App 一覽',
                     'footer.copyright': '© 2025 AI 心理筆記. All Rights Reserved.',
                     'reminder.title': '安心提醒',
-                    'reminder.content': 'AI 心理師，能提供支持與引導，但無法取代專業醫療診斷。若您感到非常痛苦，請務必尋求專業機構診斷。',
+                    'reminder.content': '本站AI心理師，能提供支持與引導，但無法取代專業醫療診斷。若您感到非常痛苦，請務必尋求專業機構診斷。你的資料皆儲存在您的設備瀏覽器，我們沒有存檔或查看的權限，請您定期備份匯出，確保資料的延續。',
                     'reminder.link': '專業協助',
                     'journal.title': '寫下今天的心情',
                     'journal.label': '雜記內容',
@@ -471,7 +536,6 @@
                     'dashboard.mood_bar_title': '七日平均心情',
                     'dashboard.analysis_title': '心情趨勢分析',
                     'dashboard.suggestions_title': '給你的小建議',
-                    // [新增] 贊助相關文字
                     'sponsor.title': '這工具對你有幫助嗎？',
                     'sponsor.message': '給開發者一個支持！小額贊助他吧！金額隨喜！讓他有動力開發更好的工具。',
                     'sponsor.confirm_button': '立即前往支持',
@@ -495,7 +559,17 @@
                 const t = i18nData['zh-TW'];
                 document.querySelectorAll('[data-i18n]').forEach(el => {
                     const key = el.dataset.i18n;
-                    if (t[key]) el.textContent = t[key];
+                    if (t[key]) {
+                        // Preserve child elements like icons
+                        const icon = el.querySelector('i');
+                        if (icon) {
+                            el.textContent = '';
+                            el.appendChild(icon);
+                            el.appendChild(document.createTextNode(' ' + t[key]));
+                        } else {
+                            el.textContent = t[key];
+                        }
+                    }
                 });
                 document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
                     const key = el.dataset.i18nPlaceholder;
@@ -521,7 +595,6 @@
                 dom.stopBreathingBtn.addEventListener('click', stopBreathingExercise);
                 dom.openMoodDashboardBtn.addEventListener('click', handleGenerateMoodReport);
 
-                // [新增] 贊助 Modal 按鈕監聽
                 dom.sponsorConfirmBtn.addEventListener('click', () => {
                     window.open(SPONSOR_URL, '_blank');
                     closeModal(dom.sponsorshipModal);
@@ -761,11 +834,9 @@
                 showNotification(t['notification.journal_saved'], 'success');
                 dom.journalForm.reset();
                 
-                // [新增] 檢查是否觸發贊助提示
                 checkSponsorshipMilestone();
             }
             
-            // [新增] 檢查贊助里程碑的函式
             function checkSponsorshipMilestone() {
                 const entries = getJournalEntries();
                 const totalEntries = entries.length;

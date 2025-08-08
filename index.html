@@ -82,7 +82,7 @@
         .breathing-circle {
             animation: pulse-breathe 8s ease-in-out infinite;
         }
-        /* [新增] 心情儀表板橫條 */
+        /* 心情儀表板橫條 */
         .mood-bar-bg {
             background-color: #e5e7eb; /* gray-200 */
             border-radius: 9999px;
@@ -127,10 +127,14 @@
         <!-- Header -->
         <header class="w-full theme-bg-card rounded-2xl shadow-lg p-4 sm:p-6 relative">
             <div class="absolute top-4 right-4 flex items-center gap-4">
-                <button data-modal-target="info-modal" class="theme-text-light hover:theme-text transition-colors" title="網站資訊">
+                <!-- [新增] 贊助按鈕 -->
+                <a href="https://buymeacoffee.com/arvincreator" target="_blank" rel="noopener noreferrer" class="theme-text-light hover:theme-text transition-colors" data-i18n-title="header.sponsor">
+                    <i class="ph-bold ph-coffee text-xl"></i>
+                </a>
+                <button data-modal-target="info-modal" class="theme-text-light hover:theme-text transition-colors" data-i18n-title="header.info">
                     <i class="ph-bold ph-info text-xl"></i>
                 </button>
-                <button id="open-settings-modal-btn" data-modal-target="settings-modal" class="theme-text-light hover:theme-text transition-colors" title="設定">
+                <button id="open-settings-modal-btn" data-modal-target="settings-modal" class="theme-text-light hover:theme-text transition-colors" data-i18n-title="header.settings">
                     <i class="ph-bold ph-gear text-xl"></i>
                 </button>
             </div>
@@ -168,7 +172,7 @@
             </form>
         </section>
 
-        <!-- [新增] 智慧分析工具 -->
+        <!-- 智慧分析工具 -->
         <section class="w-full theme-bg-card rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
             <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-magic-wand theme-primary"></i> <span data-i18n="analysis.title">智慧分析工具</span></h2>
             <div class="grid grid-cols-1 gap-4">
@@ -176,16 +180,13 @@
                     <i class="ph-fill ph-chart-line-up"></i>
                     <span data-i18n="analysis.mood_dashboard_button">生成近七日心情報告</span>
                 </button>
-                <!-- 未來可在此處新增更多分析按鈕 -->
             </div>
         </section>
 
         <!-- AI 心理師 -->
         <section id="psychologist-section" class="w-full">
             <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-user-focus theme-primary"></i> <span data-i18n="psychologist.title">AI 心理師</span></h2>
-            <div id="psychologist-card-container">
-                <!-- 心理師卡片將由 JS 生成 -->
-            </div>
+            <div id="psychologist-card-container"></div>
         </section>
 
     </main>
@@ -204,16 +205,27 @@
 
     <!-- ==================== Modals ==================== -->
 
-    <!-- [新增] 心情儀表板 Modal -->
+    <!-- [新增] 贊助提示 Modal -->
+    <div id="sponsorship-modal" class="modal hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black bg-opacity-70">
+        <div class="modal-content theme-bg-card rounded-2xl shadow-xl w-full max-w-md p-6 sm:p-8 transform scale-95 text-center">
+            <i class="ph-duotone ph-coffee text-5xl theme-primary mb-4"></i>
+            <h2 class="text-xl font-bold theme-text mb-3" data-i18n="sponsor.title">這工具對你有幫助嗎？</h2>
+            <p class="theme-text-light mb-6" data-i18n="sponsor.message">給開發者一個支持！小額贊助他吧！金額隨喜！讓他有動力開發更好的工具。</p>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button id="sponsor-decline-btn" class="w-full flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-4 rounded-lg" data-i18n="sponsor.decline_button">我不想支持</button>
+                <button id="sponsor-confirm-btn" class="w-full flex-1 theme-bg-primary theme-bg-primary-hover text-white font-bold py-3 px-4 rounded-lg" data-i18n="sponsor.confirm_button">立即前往支持</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 心情儀表板 Modal -->
     <div id="mood-dashboard-modal" class="modal hidden fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black bg-opacity-70">
         <div class="modal-content theme-bg-card rounded-2xl shadow-xl w-full max-w-2xl p-6 sm:p-8 transform scale-95 flex flex-col max-h-[90vh]">
             <div class="flex justify-between items-center mb-4 flex-shrink-0">
                 <h2 class="text-2xl font-bold theme-text" data-i18n="dashboard.title">近七日心情報告</h2>
                 <button class="modal-close text-slate-400 hover:theme-text"><i class="ph-bold ph-x text-2xl"></i></button>
             </div>
-            <div id="mood-dashboard-content" class="flex-grow overflow-y-auto pr-4">
-                <!-- 報告內容將由 JS 動態生成 -->
-            </div>
+            <div id="mood-dashboard-content" class="flex-grow overflow-y-auto pr-4"></div>
         </div>
     </div>
 
@@ -263,9 +275,7 @@
                     </button>
                 </div>
             </div>
-            <div id="journal-history-list" class="flex-grow p-4 space-y-4 overflow-y-auto">
-                <!-- 雜記卡片將由 JS 生成 -->
-            </div>
+            <div id="journal-history-list" class="flex-grow p-4 space-y-4 overflow-y-auto"></div>
             <p id="no-journals-message" class="text-center theme-text-light py-12 hidden" data-i18n="history.empty_message">這段期間沒有任何雜記喔！</p>
         </div>
     </div>
@@ -280,9 +290,7 @@
                     <span data-i18n="chat.end_chat_button">結束對話並儲存</span>
                 </button>
             </div>
-            <div id="chat-log" class="flex-grow p-4 space-y-4 overflow-y-auto">
-                <!-- Chat bubbles will be inserted here -->
-            </div>
+            <div id="chat-log" class="flex-grow p-4 space-y-4 overflow-y-auto"></div>
              <div id="chat-action-container" class="p-2 flex justify-center"></div>
              <div id="breathing-exercise-container" class="hidden flex-col items-center justify-center p-8 gap-4 text-center">
                 <div class="breathing-circle w-32 h-32 bg-sky-300 rounded-full flex items-center justify-center">
@@ -351,6 +359,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             // ==================== Global Config & State ====================
             const PSYCHOLOGIST_ID = 'fixed_psychologist_01';
+            const SPONSOR_URL = 'https://buymeacoffee.com/arvincreator';
             let conversationHistory = [];
             let breathingInterval = null;
 
@@ -366,8 +375,9 @@
                 'settings-modal', 'model-input-modal', 'gemini-api-key', 'save-settings-btn', 'import-journals-btn', 'export-journals-btn', 'import-file-input',
                 'notification-container',
                 'info-modal', 'info-tabs', 'tab-content-about', 'tab-content-usage', 'tab-content-privacy', 'tab-content-terms',
-                // [新增] 心情儀表板相關元素
-                'open-mood-dashboard-btn', 'mood-dashboard-modal', 'mood-dashboard-content'
+                'open-mood-dashboard-btn', 'mood-dashboard-modal', 'mood-dashboard-content',
+                // [新增] 贊助相關元素
+                'sponsorship-modal', 'sponsor-confirm-btn', 'sponsor-decline-btn'
             ];
             elementIds.forEach(id => {
                 const element = document.getElementById(id);
@@ -386,6 +396,9 @@
                     'meta.description': '一個以您為中心的私密空間，書寫心情、回顧足跡，並在需要時與溫暖的 AI 心理師對話。',
                     'title': 'AI 心理筆記',
                     'subtitle': '一個懂你、傾聽你的私密心靈空間',
+                    'header.sponsor': '贊助開發者',
+                    'header.info': '網站資訊',
+                    'header.settings': '設定',
                     'footer.copyright': '© 2025 AI 心理筆記. All Rights Reserved.',
                     'reminder.title': '安心提醒',
                     'reminder.content': 'AI 心理師，能提供支持與引導，但無法取代專業醫療診斷。若您感到非常痛苦，請務必尋求專業機構診斷。',
@@ -451,14 +464,18 @@
                     'info.content.usage': `<h3>如何使用這個工具？</h3><ol><li><strong><i class="ph-bold ph-pencil-line"></i> 寫下心情：</strong>在主畫面的輸入框中，自由書寫任何您想記錄的事，然後點擊「儲存今日雜記」。</li><li><strong><i class="ph-bold ph-book-open"></i> 回顧足跡：</strong>點擊「回顧心情足跡」按鈕，您可以查看、篩選所有過去的雜記。</li><li><strong><i class="ph-bold ph-chart-line-up"></i> 心情報告：</strong>點擊「生成近七日心情報告」按鈕，AI 將會為您分析最近的雜記，並提供一份視覺化的心情儀表板與建議。</li><li><strong><i class="ph-bold ph-chats-circle"></i> 與 AI 對話：</strong>點擊「AI 心理師」卡片下方的「開始對話」按鈕，即可與溫老師進行一對一的私密對談。</li><li><strong><i class="ph-bold ph-wind"></i> 呼吸練習：</strong>在與 AI 對話時，若感到焦慮，AI 可能會建議您進行呼吸練習。</li><li><strong><i class="ph-bold ph-gear"></i> 進行設定：</strong>點擊右上角的齒輪圖示，您可以設定您的 Gemini API 金鑰，這是與 AI 對話所必需的。</li><li><strong><i class="ph-bold ph-download-simple"></i> 資料管理：</strong>在「設定」中，您可以將所有的雜記匯出成一個 .json 檔案備份，或從備份檔案中匯入您先前的紀錄。<strong>您的資料，完全由您掌控。</strong></li></ol>`,
                     'info.content.privacy': `<h3>您的隱私至關重要</h3><p>我們深知心理健康的私密性，因此本工具的設計將您的隱私放在第一位。請您放心，這裡是一個絕對安全的空間。</p><h3>純前端運作，資料不離身</h3><p>本網站是一個<strong>純客戶端（Client-side）應用程式</strong>。這意味著所有的程式碼都在您的瀏覽器中執行，我們沒有後端伺服器，也<strong>絕對不會</strong>儲存、傳輸或窺探您的任何資料。</p><ul><li><strong>心情雜記：</strong>您寫下的所有內容，都只儲存在您目前使用的瀏覽器的本地儲存空間（Local Storage）中。資料只存在您的裝置上，除非您手動清除瀏覽器資料，否則它會一直留在那裡。</li><li><strong>API 金鑰：</strong>您輸入的 Google Gemini API 金鑰同樣也只儲存在您瀏覽器的本地儲存空間中。它只會被用來直接與 Google 的 AI 服務進行驗證及對話，絕不會被傳送到我們的伺服器或任何第三方。</li></ul><p>簡單來說，您的所有秘密都安全地鎖在您自己的裝置裡。我們無法、也無意存取您的任何個人資訊。</p>`,
                     'info.content.terms': `<h3>版權與免責聲明</h3><p>本網站的介面設計、圖像及程式碼版權為本站開發者所有。© 2025 AI 心理筆記. All Rights Reserved.</p><h3>免責聲明</h3><p>AI 心理筆記是一個旨在提供情緒支持與自我探索輔助的工具，但它<strong>不能取代專業的心理諮商或醫療診斷</strong>。</p><ul><li>AI（溫老師）提供的建議與分析，是基於大型語言模型的演算法生成，僅供參考。它可能無法完全理解您複雜的個人情況，也可能出現不準確或不恰當的回應。</li><li>請勿將 AI 的回覆視為專業醫療建議。若您正經歷嚴重的心理困擾、情緒危機，或有任何可能危及自己或他人的想法，<strong>請立即停止使用本工具，並尋求頁面下方提供的專業協助資源</strong>。</li><li>您應對自己在本網站上的所有行為，以及如何解讀和使用 AI 生成的內容負完全責任。對於因使用本工具而可能導致的任何直接或間接後果，本網站概不負責。</li></ul><p>使用本網站即表示您已閱讀、理解並同意以上條款。</p>`,
-                    // [新增] 心情儀表板相關文字
                     'dashboard.title': '近七日心情報告',
                     'dashboard.loading': 'AI 正在為您分析近七天的雜記，請稍候...',
                     'dashboard.no_entries': '最近七天內沒有足夠的雜記可以分析喔！至少需要一篇雜記才能生成報告。',
                     'dashboard.error': '抱歉，分析時發生錯誤。請稍後再試或檢查您的 API 金鑰設定。',
                     'dashboard.mood_bar_title': '七日平均心情',
                     'dashboard.analysis_title': '心情趨勢分析',
-                    'dashboard.suggestions_title': '給你的小建議'
+                    'dashboard.suggestions_title': '給你的小建議',
+                    // [新增] 贊助相關文字
+                    'sponsor.title': '這工具對你有幫助嗎？',
+                    'sponsor.message': '給開發者一個支持！小額贊助他吧！金額隨喜！讓他有動力開發更好的工具。',
+                    'sponsor.confirm_button': '立即前往支持',
+                    'sponsor.decline_button': '我不想支持'
                 }
             };
 
@@ -484,6 +501,10 @@
                     const key = el.dataset.i18nPlaceholder;
                     if (t[key]) el.placeholder = t[key];
                 });
+                document.querySelectorAll('[data-i18n-title]').forEach(el => {
+                    const key = el.dataset.i18nTitle;
+                    if (t[key]) el.title = t[key];
+                });
             }
 
             // ==================== Event Listeners ====================
@@ -498,9 +519,16 @@
                 dom.importJournalsBtn.addEventListener('click', () => dom.importFileInput.click());
                 dom.importFileInput.addEventListener('change', handleImportData);
                 dom.stopBreathingBtn.addEventListener('click', stopBreathingExercise);
-
-                // [新增] 心情儀表板按鈕監聽
                 dom.openMoodDashboardBtn.addEventListener('click', handleGenerateMoodReport);
+
+                // [新增] 贊助 Modal 按鈕監聽
+                dom.sponsorConfirmBtn.addEventListener('click', () => {
+                    window.open(SPONSOR_URL, '_blank');
+                    closeModal(dom.sponsorshipModal);
+                });
+                dom.sponsorDeclineBtn.addEventListener('click', () => {
+                    closeModal(dom.sponsorshipModal);
+                });
 
                 // Modal open/close listeners
                 document.querySelectorAll('[data-modal-target]').forEach(button => {
@@ -603,13 +631,13 @@
                     card.querySelector('.delete-journal-btn').addEventListener('click', (e) => {
                         e.stopPropagation();
                         handleDeleteJournal(entry.id);
-                        renderJournalHistory(); // Re-render after deletion
+                        renderJournalHistory();
                     });
                     dom.journalHistoryList.appendChild(card);
                 });
             }
 
-            // ==================== [新增] 心情儀表板邏輯 ====================
+            // ==================== 心情儀表板邏輯 ====================
             async function handleGenerateMoodReport() {
                 const t = i18nData['zh-TW'];
                 const apiKey = localStorage.getItem('geminiApiKeyForJournal');
@@ -635,7 +663,7 @@
                     }
 
                     const prompt = createMoodReportPrompt(recentEntries);
-                    const responseText = await callGeminiApi(prompt, true); // true for JSON response
+                    const responseText = await callGeminiApi(prompt, true);
                     const reportData = JSON.parse(responseText);
 
                     renderMoodDashboard(reportData);
@@ -649,15 +677,13 @@
             function renderMoodDashboard(data) {
                 const t = i18nData['zh-TW'];
                 const score = data.averageScore || 0;
-                // 將 -10 到 10 的分數轉換為 0 到 100 的百分比
                 const percentage = ((score + 10) / 20) * 100;
                 
-                // 根據分數調整顏色 (藍 -> 綠 -> 黃 -> 橙)
                 const getBarColor = (p) => {
-                    if (p < 25) return '#60a5fa'; // blue-400
-                    if (p < 50) return '#34d399'; // green-400
-                    if (p < 75) return '#facc15'; // yellow-400
-                    return '#f97316'; // orange-500
+                    if (p < 25) return '#60a5fa';
+                    if (p < 50) return '#34d399';
+                    if (p < 75) return '#facc15';
+                    return '#f97316';
                 };
                 
                 const contentHTML = `
@@ -734,6 +760,24 @@
                 saveJournalEntries(entries);
                 showNotification(t['notification.journal_saved'], 'success');
                 dom.journalForm.reset();
+                
+                // [新增] 檢查是否觸發贊助提示
+                checkSponsorshipMilestone();
+            }
+            
+            // [新增] 檢查贊助里程碑的函式
+            function checkSponsorshipMilestone() {
+                const entries = getJournalEntries();
+                const totalEntries = entries.length;
+                const milestone = 7;
+                
+                if (totalEntries > 0 && totalEntries % milestone === 0) {
+                    const storageKey = `sponsorshipPromptShownFor_${totalEntries}`;
+                    if (!localStorage.getItem(storageKey)) {
+                        openModal(dom.sponsorshipModal);
+                        localStorage.setItem(storageKey, 'true');
+                    }
+                }
             }
 
             function handleDeleteJournal(id) {
@@ -852,7 +896,7 @@
                 } catch (error) {
                     console.error("Generation failed:", error);
                     showNotification(i18nData['zh-TW']['notification.generate_fail'] + error.message, 'error');
-                    conversationHistory.pop(); // Remove user message if AI fails
+                    conversationHistory.pop();
                     renderChatLog();
                 } finally {
                     setChatLoading(false);
@@ -894,7 +938,7 @@
 
             function renderChatLog() {
                 dom.chatLog.innerHTML = '';
-                dom.chatActionContainer.innerHTML = ''; // Clear action buttons
+                dom.chatActionContainer.innerHTML = '';
                 conversationHistory.forEach(msg => {
                     const wrapper = document.createElement('div');
                     const isUser = msg.role === 'user';
@@ -932,7 +976,7 @@
                     button.className = 'theme-bg-primary theme-bg-primary-hover text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-transform active:scale-95';
                     button.innerHTML = `<i class="ph-fill ph-wind"></i> <span>${t['chat.start_breathing']}</span>`;
                     button.onclick = startBreathingExercise;
-                    dom.chatActionContainer.innerHTML = ''; // Clear previous actions
+                    dom.chatActionContainer.innerHTML = '';
                     dom.chatActionContainer.appendChild(button);
                 }
             }
@@ -944,13 +988,13 @@
                 dom.chatInput.disabled = isLoading;
                 if (isLoading) {
                     dom.chatLog.scrollTop = dom.chatLog.scrollHeight;
-                    dom.chatActionContainer.innerHTML = ''; // Hide action buttons while loading
+                    dom.chatActionContainer.innerHTML = '';
                 }
             }
 
             // ==================== Breathing Exercise Logic ====================
             function startBreathingExercise() {
-                dom.chatActionContainer.innerHTML = ''; // Hide the button
+                dom.chatActionContainer.innerHTML = '';
                 dom.breathingExerciseContainer.classList.remove('hidden');
                 dom.breathingExerciseContainer.classList.add('flex');
                 const steps = [
@@ -1023,7 +1067,6 @@
                 return `# 指令\n請你扮演一位記憶大師，閱讀以下的諮商對話紀錄。\n你的任務是為「我」的角色，寫一段簡潔的、第一人稱的摘要（2-3句話）。這段摘要將用於下一次對話前，幫助心理師快速回憶起這次聊天的重點。\n\n# 需要摘要的重點\n- 我們聊了哪些關鍵話題或事件？\n- 我透露了哪些核心的情緒、感受或想法？\n- 我們有沒有達成什麼新的領悟或下一步的行動計畫？\n\n# 輸出要求\n- 使用「我」的視角來寫。\n- 風格必須是總結性的，像是在寫筆記。\n- 必須非常簡潔，最多不超過100個字。\n- 直接輸出摘要內容，不要有任何前言或結語。\n\n# 對話紀錄\n"""\n${historyText}\n"""`;
             }
             
-            // [新增] 建立心情儀表板的 Prompt
             function createMoodReportPrompt(entries) {
                 const entriesText = entries.map(e => `[${formatDateTime(e.timestamp)}]\n${e.content}`).join('\n\n---\n\n');
                 return `# 指令
@@ -1077,7 +1120,6 @@ ${entriesText}
                     { "category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE" }
                 ];
                 
-                // [修改] 如果期望得到 JSON，則加入 generationConfig
                 if (expectJson) {
                     payload.generationConfig = {
                         "response_mime_type": "application/json",

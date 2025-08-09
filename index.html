@@ -132,17 +132,22 @@
                     <span>作者開發的其他應用</span>
                 </button>
             </div>
-            <div class="absolute top-4 right-4 flex items-center gap-4">
-                <a href="https://buymeacoffee.com/arvincreator" target="_blank" rel="noopener noreferrer" class="theme-text-light hover:theme-text transition-colors" data-i18n-title="header.sponsor">
-                    <i class="ph-bold ph-coffee text-xl"></i>
-                </a>
-                <button data-modal-target="info-modal" class="theme-text-light hover:theme-text transition-colors" data-i18n-title="header.info">
-                    <i class="ph-bold ph-info text-xl"></i>
-                </button>
-                <button id="open-settings-modal-btn" data-modal-target="settings-modal" class="theme-text-light hover:theme-text transition-colors" data-i18n-title="header.settings">
-                    <i class="ph-bold ph-gear text-xl"></i>
-                </button>
-            </div>
+            <div class="absolute top-4 right-4 flex items-center gap-3 sm:gap-4">
+    <div id="language-switcher" class="text-sm font-bold theme-text-light border theme-border rounded-full p-0.5 flex items-center gap-1">
+        <button data-lang="zh-TW" class="lang-btn px-2 py-0.5 rounded-full">中</button>
+        <button data-lang="en" class="lang-btn px-2 py-0.5 rounded-full">EN</button>
+        <button data-lang="ja" class="lang-btn px-2 py-0.5 rounded-full">日</button>
+    </div>
+    <a href="https://buymeacoffee.com/arvincreator" target="_blank" rel="noopener noreferrer" class="theme-text-light hover:theme-text transition-colors" data-i18n-title="header.sponsor">
+        <i class="ph-bold ph-coffee text-xl"></i>
+    </a>
+    <button data-modal-target="info-modal" class="theme-text-light hover:theme-text transition-colors" data-i18n-title="header.info">
+        <i class="ph-bold ph-info text-xl"></i>
+    </button>
+    <button id="open-settings-modal-btn" data-modal-target="settings-modal" class="theme-text-light hover:theme-text transition-colors" data-i18n-title="header.settings">
+        <i class="ph-bold ph-gear text-xl"></i>
+    </button>
+</div>
             <div class="text-center pt-12 sm:pt-8">
                 <i class="ph-duotone ph-leaf text-5xl sm:text-6xl theme-primary"></i>
                 <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black theme-text mt-4 mb-2" data-i18n="title">AI 心理筆記</h1>
@@ -452,6 +457,15 @@
             // ==================== Global Config & State ====================
             const PSYCHOLOGIST_ID = 'fixed_psychologist_01';
             const SPONSOR_URL = 'https://buymeacoffee.com/arvincreator';
+
+const i18nLocales = {
+    'zh-TW': 'zh-TW',
+    'en': 'en-US',
+    'ja': 'ja-JP'
+};
+let currentLanguage;
+let t; // This will hold the translations for the current language
+
             const META_SUMMARY_THRESHOLD = 5; // 每5個期間摘要，就濃縮成一個元摘要
             let conversationHistory = [];
             let breathingInterval = null;
@@ -486,154 +500,390 @@
 
             // ==================== i18n Language Data ====================
             const i18nData = {
-                'zh-TW': {
-                    'meta.title': 'AI 心理筆記',
-                    'meta.description': '一個以您為中心的私密空間，書寫心情、回顧足跡，並在需要時與溫暖的 AI 心理師對話。',
-                    'title': 'AI 心理筆記',
-                    'subtitle': '一個懂你、傾聽你的私密心靈空間',
-                    'header.sponsor': '贊助開發者',
-                    'header.info': '網站資訊',
-                    'header.settings': '設定',
-                    'header.other_apps': '作者開發的其他應用',
-                    'other_apps.title': '@Arvin Chen 開發 Web App 一覽',
-                    'footer.copyright': '© 2025 AI 心理筆記. All Rights Reserved.',
-                    'reminder.title': '安心提醒',
-                    'reminder.content': 'AI 心理師，能提供支持與引導，但無法取代專業醫療診斷。若您感到非常痛苦，請務必尋求專業機構診斷。',
-                    'reminder.link': '專業協助',
-                    'journal.title': '寫下今天的心情',
-                    'journal.label': '雜記內容',
-                    'journal.placeholder': '今天發生了什麼事？有什麼感覺或想法想記錄下來嗎？任何時候都可以記錄一下，無論是開心或難過，這裡都是安全的空間...',
-                    'journal.save_button': '儲存今日雜記',
-                    'journal.history_button': '回顧心情足跡',
-                    'analysis.title': '智慧分析工具',
-                    'analysis.mood_dashboard_button': '生成近七日心情報告',
-                    'psychologist.title': 'AI 心理師',
-                    'psychologist.name': '溫老師',
-                    'psychologist.description': '一位受過專業訓練的 AI 心理師，專長是傾聽、同理，並引導您探索內心。',
-                    'psychologist.chat_button': '開始對話',
-                    'psychologist.memory_button': '溫老師對你的了解',
-                    'history.title': '我的心情足跡',
-                    'history.start_date': '開始日期',
-                    'history.end_date': '結束日期',
-                    'history.filter_button': '篩選',
-                    'history.empty_message': '這段期間沒有任何雜記喔！',
-                    'history.delete_button': '刪除此篇',
-                    'chat.modal.title': '與 {nickname} 的對話',
-                    'chat.end_chat_button': '結束對話並儲存',
-                    'chat.typing': '溫老師正在思考中...',
-                    'chat.summarizing': '溫老師正在回顧您的筆記...',
-                    'chat.input_placeholder': '說說你的感受...',
-                    'chat.start_breathing': '開始 4-7-8 呼吸練習',
-                    'chat.stop_breathing': '停止練習',
-                    'settings.title': '設定',
-                    'settings.model_select': 'AI 模型名稱',
-                    'settings.model_placeholder': '例如: gemini-2.5-flash-lite',
-                    'settings.api_key_label': '您的 Google Gemini API 金鑰',
-                    'settings.api_key_placeholder': '請在此貼上您的金鑰',
-                    'settings.get_api_key': '點此免費獲取金鑰 ↗',
-                    'settings.data_management': '資料管理',
-                    'settings.import_button': '匯入雜記',
-                    'settings.export_button': '匯出雜記',
-                    'settings.save': '儲存設定',
-                    'resources.title': '專業心理協助資源',
-                    'resources.description': '若您需要即時的專業協助，請隨時利用以下資源：',
-                    'resources.line1': '衛福部安心專線：1925',
-                    'resources.line2': '生命線專線：1995',
-                    'resources.line3': '張老師專線：1980',
-                    'notification.no_api_key': '請先在「設定」中輸入您的 Gemini API 金鑰！',
-                    'notification.settings_saved': '設定已儲存！',
-                    'notification.journal_saved': '雜記已成功儲存！',
-                    'notification.journal_deleted': '雜記已刪除。',
-                    'notification.journal_empty': '請先寫下一些內容再儲存喔！',
-                    'notification.saving_summary': '正在儲存對話記憶，請稍候...',
-                    'notification.summary_saved': '對話記憶已儲存！期待下次再聊。',
-                    'notification.summary_failed': '記憶儲存失敗：',
-                    'notification.generate_fail': '訊息傳送失敗：',
-                    'notification.no_input': '請輸入你想說的話。',
-                    'notification.export_success': '雜記已成功匯出！',
-                    'notification.export_failed': '雜記匯出失敗，沒有可匯出的內容。',
-                    'notification.import_success': '{count} 篇雜記已成功匯入！',
-                    'notification.import_failed': '匯入失敗，請確認檔案格式是否正確。',
-                    'notification.reminder_saved': '記憶提醒已儲存！',
-                    'notification.reminder_empty': '請輸入要提醒的內容。',
-                    'info.title': '網站資訊',
-                    'info.tab.about': '關於網站',
-                    'info.tab.usage': '使用說明',
-                    'info.tab.privacy': '隱私權政策',
-                    'info.tab.terms': '版權與免責',
-                    'info.content.about': `<h3>歡迎來到 AI 心理筆記</h3><p>這是一個專為您打造的私密心靈空間。我們相信，書寫是整理思緒、安頓內心的有效方式。在這裡，您可以隨時隨地記錄下您的心情、想法與感受，不必擔心被他人看見。</p><p>除了作為您的數位心情日記，我們還內建了一位溫暖的 AI 心理師——溫老師。當您感到迷惘、壓力大，或只是想找人聊聊時，隨時可以與他展開對話。他會運用專業的心理學知識，傾聽您的煩惱，並引導您從不同角度看待問題。</p><p>希望這個工具能成為您自我關懷旅程中的溫暖夥伴，陪伴您走過每一個高低起伏。</p>`,
-                    'info.content.usage': `<h3>如何使用這個工具？</h3><ol><li><strong><i class="ph-bold ph-pencil-line"></i> 寫下心情：</strong>在主畫面的輸入框中，自由書寫任何您想記錄的事，然後點擊「儲存今日雜記」。</li><li><strong><i class="ph-bold ph-book-open"></i> 回顧足跡：</strong>點擊「回顧心情足跡」按鈕，您可以查看、篩選所有過去的雜記。</li><li><strong><i class="ph-bold ph-chart-line-up"></i> 心情報告：</strong>點擊「生成近七日心情報告」按鈕，AI 將會為您分析最近的雜記，並提供一份視覺化的心情儀表板與建議。</li><li><strong><i class="ph-bold ph-chats-circle"></i> 與 AI 對話：</strong>點擊「AI 心理師」卡片下方的「開始對話」按鈕，即可與溫老師進行一對一的私密對談。AI 會自動回顧您尚未摘要過的雜記，以更好地理解您。</li><li><strong><i class="ph-bold ph-brain"></i> 查看與補充記憶：</strong>點擊「溫老師對你的了解」按鈕，您可以查看 AI 目前記得的所有事情，並手動為他補充重要的記憶點。</li><li><strong><i class="ph-bold ph-wind"></i> 呼吸練習：</strong>在與 AI 對話時，若感到焦慮，AI 可能會建議您進行呼吸練習。</li><li><strong><i class="ph-bold ph-gear"></i> 進行設定：</strong>點擊右上角的齒輪圖示，您可以設定您的 Gemini API 金鑰，這是與 AI 對話所必需的。</li><li><strong><i class="ph-bold ph-download-simple"></i> 資料管理：</strong>在「設定」中，您可以將所有的雜記與記憶匯出成一個 .json 檔案備份，或從備份檔案中匯入您先前的紀錄。<strong>您的資料，完全由您掌控。</strong></li></ol>`,
-                    'info.content.privacy': `<h3>您的隱私至關重要</h3><p>我們深知心理健康的私密性，因此本工具的設計將您的隱私放在第一位。請您放心，這裡是一個絕對安全的空間。</p><h3>純前端運作，資料不離身</h3><p>本網站是一個<strong>純客戶端（Client-side）應用程式</strong>。這意味著所有的程式碼都在您的瀏覽器中執行，我們沒有後端伺服器，也<strong>絕對不會</strong>儲存、傳輸或窺探您的任何資料。</p><ul><li><strong>心情雜記與所有記憶：</strong>您寫下的所有內容、AI 生成的對話摘要、雜記摘要、元摘要等，都只儲存在您目前使用的瀏覽器的本地儲存空間（Local Storage）中。資料只存在您的裝置上，除非您手動清除瀏覽器資料，否則它會一直留在那裡。</li><li><strong>API 金鑰：</strong>您輸入的 Google Gemini API 金鑰同樣也只儲存在您瀏覽器的本地儲存空間中。它只會被用來直接與 Google 的 AI 服務進行驗證及對話，絕不會被傳送到我們的伺服器或任何第三方。</li></ul><p>簡單來說，您的所有秘密都安全地鎖在您自己的裝置裡。我們無法、也無意存取您的任何個人資訊。</p>`,
-                    'info.content.terms': `<h3>版權與免責聲明</h3><p>本網站的介面設計、圖像及程式碼版權為本站開發者所有。© 2025 AI 心理筆記. All Rights Reserved.</p><h3>免責聲明</h3><p>AI 心理筆記是一個旨在提供情緒支持與自我探索輔助的工具，但它<strong>不能取代專業的心理諮商或醫療診斷</strong>。</p><ul><li>AI（溫老師）提供的建議與分析，是基於大型語言模型的演算法生成，僅供參考。它可能無法完全理解您複雜的個人情況，也可能出現不準確或不恰當的回應。</li><li>請勿將 AI 的回覆視為專業醫療建議。若您正經歷嚴重的心理困擾、情緒危機，或有任何可能危及自己或他人的想法，<strong>請立即停止使用本工具，並尋求頁面下方提供的專業協助資源</strong>。</li><li>您應對自己在本網站上的所有行為，以及如何解讀和使用 AI 生成的內容負完全責任。對於因使用本工具而可能導致的任何直接或間接後果，本網站概不負責。</li></ul><p>使用本網站即表示您已閱讀、理解並同意以上條款。</p>`,
-                    'dashboard.title': '近七日心情報告',
-                    'dashboard.loading': 'AI 正在為您分析近七天的雜記，請稍候...',
-                    'dashboard.no_entries': '最近七天內沒有足夠的雜記可以分析喔！至少需要一篇雜記才能生成報告。',
-                    'dashboard.error': '抱歉，分析時發生錯誤。請稍後再試或檢查您的 API 金鑰設定。',
-                    'dashboard.mood_bar_title': '七日平均心情',
-                    'dashboard.analysis_title': '心情趨勢分析',
-                    'dashboard.suggestions_title': '給你的小建議',
-                    'sponsor.title': '這工具對你有幫助嗎？',
-                    'sponsor.message': '給開發者一個支持！小額贊助他吧！金額隨喜！讓他有動力開發更好的工具。',
-                    'sponsor.confirm_button': '立即前往支持',
-                    'sponsor.decline_button': '我不想支持',
-                    'memory_dashboard.title': '溫老師對你的了解',
-                    'memory_dashboard.description': '溫老師跟人一樣，會努力記住我們聊過的事。對於越久遠的事情，他會記得一個大概的輪廓（長期記憶）；對於近期發生的事，則會有比較清晰的印象（中期與近期記憶）。您也可以在下方手動為他補充重要的記憶點。',
-                    'memory_dashboard.input_label': '為溫老師補充記憶提醒：',
-                    'memory_dashboard.input_placeholder': '例如：我下週有一個重要的面試，心情很緊張...',
-                    'memory_dashboard.save_button': '儲存提醒',
-                    'memory_dashboard.empty': '目前溫老師還沒有關於您的記憶。開始寫雜記或與他對話來建立記憶吧！',
-                    'memory_dashboard.tag.meta': '長期記憶',
-                    'memory_dashboard.tag.journal': '中期記憶',
-                    'memory_dashboard.tag.conversation': '近期記憶',
-                    'memory_dashboard.tag.reminder': '手動提醒'
-                }
-            };
+    'zh-TW': {
+        'meta.title': 'AI 心理筆記',
+        'meta.description': '一個以您為中心的私密空間，書寫心情、回顧足跡，並在需要時與溫暖的 AI 心理師對話。',
+        'title': 'AI 心理筆記',
+        'subtitle': '一個懂你、傾聽你的私密心靈空間',
+        'header.sponsor': '贊助開發者',
+        'header.info': '網站資訊',
+        'header.settings': '設定',
+        'header.other_apps': '作者開發的其他應用',
+        'other_apps.title': '@Arvin Chen 開發 Web App 一覽',
+        'footer.copyright': '© 2025 AI 心理筆記. All Rights Reserved.',
+        'reminder.title': '安心提醒',
+        'reminder.content': '我是一位 AI 心理師，能提供支持與引導，但無法取代專業醫療診斷。若您感到非常痛苦，請務必尋求專業協助。',
+        'reminder.link': '專業協助',
+        'journal.title': '寫下今天的心情',
+        'journal.label': '雜記內容',
+        'journal.placeholder': '今天發生了什麼事？有什麼感覺或想法想記錄下來嗎？任何時候都可以記錄一下，無論是開心或難過，這裡都是安全的空間...',
+        'journal.save_button': '儲存今日雜記',
+        'journal.history_button': '回顧心情足跡',
+        'analysis.title': '智慧分析工具',
+        'analysis.mood_dashboard_button': '生成近七日心情報告',
+        'psychologist.title': 'AI 心理師',
+        'psychologist.name': '溫老師',
+        'psychologist.description': '一位受過專業訓練的 AI 心理師，專長是傾聽、同理，並引導您探索內心。',
+        'psychologist.chat_button': '開始對話',
+        'psychologist.memory_button': '溫老師對你的了解',
+        'history.title': '我的心情足跡',
+        'history.start_date': '開始日期',
+        'history.end_date': '結束日期',
+        'history.filter_button': '篩選',
+        'history.empty_message': '這段期間沒有任何雜記喔！',
+        'history.delete_button': '刪除此篇',
+        'chat.modal.title': '與 {nickname} 的對話',
+        'chat.end_chat_button': '結束對話並儲存',
+        'chat.typing': '{nickname} 正在思考中...',
+        'chat.summarizing': '{nickname} 正在回顧您的筆記...',
+        'chat.input_placeholder': '說說你的感受...',
+        'chat.start_breathing': '開始 4-7-8 呼吸練習',
+        'chat.stop_breathing': '停止練習',
+        'settings.title': '設定',
+        'settings.model_select': 'AI 模型名稱',
+        'settings.model_placeholder': '例如: gemini-1.5-flash-latest',
+        'settings.api_key_label': '您的 Google Gemini API 金鑰',
+        'settings.api_key_placeholder': '請在此貼上您的金鑰',
+        'settings.get_api_key': '點此免費獲取金鑰 ↗',
+        'settings.data_management': '資料管理',
+        'settings.import_button': '匯入雜記',
+        'settings.export_button': '匯出雜記',
+        'settings.save': '儲存設定',
+        'resources.title': '專業心理協助資源',
+        'resources.description': '若您需要即時的專業協助，請隨時利用以下資源：',
+        'resources.line1': '衛福部安心專線：1925',
+        'resources.line2': '生命線專線：1995',
+        'resources.line3': '張老師專線：1980',
+        'notification.no_api_key': '請先在「設定」中輸入您的 Gemini API 金鑰！',
+        'notification.settings_saved': '設定已儲存！',
+        'notification.journal_saved': '雜記已成功儲存！',
+        'notification.journal_deleted': '雜記已刪除。',
+        'notification.journal_empty': '請先寫下一些內容再儲存喔！',
+        'notification.saving_summary': '正在儲存對話記憶，請稍候...',
+        'notification.summary_saved': '對話記憶已儲存！期待下次再聊。',
+        'notification.summary_failed': '記憶儲存失敗：',
+        'notification.generate_fail': '訊息傳送失敗：',
+        'notification.no_input': '請輸入你想說的話。',
+        'notification.export_success': '雜記已成功匯出！',
+        'notification.export_failed': '雜記匯出失敗，沒有可匯出的內容。',
+        'notification.import_success': '{count} 篇雜記已成功匯入！',
+        'notification.import_failed': '匯入失敗，請確認檔案格式是否正確。',
+        'notification.reminder_saved': '記憶提醒已儲存！',
+        'notification.reminder_empty': '請輸入要提醒的內容。',
+        'info.title': '網站資訊',
+        'info.tab.about': '關於網站',
+        'info.tab.usage': '使用說明',
+        'info.tab.privacy': '隱私權政策',
+        'info.tab.terms': '版權與免責',
+        'info.content.about': `<h3>歡迎來到 AI 心理筆記</h3><p>這是一個專為您打造的私密心靈空間。我們相信，書寫是整理思緒、安頓內心的有效方式。在這裡，您可以隨時隨地記錄下您的心情、想法與感受，不必擔心被他人看見。</p><p>除了作為您的數位心情日記，我們還內建了一位溫暖的 AI 心理師——溫老師。當您感到迷惘、壓力大，或只是想找人聊聊時，隨時可以與他展開對話。他會運用專業的心理學知識，傾聽您的煩惱，並引導您從不同角度看待問題。</p><p>希望這個工具能成為您自我關懷旅程中的溫暖夥伴，陪伴您走過每一個高低起伏。</p>`,
+        'info.content.usage': `<h3>如何使用這個工具？</h3><ol><li><strong><i class="ph-bold ph-pencil-line"></i> 寫下心情：</strong>在主畫面的輸入框中，自由書寫任何您想記錄的事，然後點擊「儲存今日雜記」。</li><li><strong><i class="ph-bold ph-book-open"></i> 回顧足跡：</strong>點擊「回顧心情足跡」按鈕，您可以查看、篩選所有過去的雜記。</li><li><strong><i class="ph-bold ph-chart-line-up"></i> 心情報告：</strong>點擊「生成近七日心情報告」按鈕，AI 將會為您分析最近的雜記，並提供一份視覺化的心情儀表板與建議。</li><li><strong><i class="ph-bold ph-chats-circle"></i> 與 AI 對話：</strong>點擊「AI 心理師」卡片下方的「開始對話」按鈕，即可與溫老師進行一對一的私密對談。AI 會自動回顧您尚未摘要過的雜記，以更好地理解您。</li><li><strong><i class="ph-bold ph-brain"></i> 查看與補充記憶：</strong>點擊「溫老師對你的了解」按鈕，您可以查看 AI 目前記得的所有事情，並手動為他補充重要的記憶點。</li><li><strong><i class="ph-bold ph-wind"></i> 呼吸練習：</strong>在與 AI 對話時，若感到焦慮，AI 可能會建議您進行呼吸練習。</li><li><strong><i class="ph-bold ph-gear"></i> 進行設定：</strong>點擊右上角的齒輪圖示，您可以設定您的 Gemini API 金鑰，這是與 AI 對話所必需的。</li><li><strong><i class="ph-bold ph-download-simple"></i> 資料管理：</strong>在「設定」中，您可以將所有的雜記與記憶匯出成一個 .json 檔案備份，或從備份檔案中匯入您先前的紀錄。<strong>您的資料，完全由您掌控。</strong></li></ol>`,
+        'info.content.privacy': `<h3>您的隱私至關重要</h3><p>我們深知心理健康的私密性，因此本工具的設計將您的隱私放在第一位。請您放心，這裡是一個絕對安全的空間。</p><h3>純前端運作，資料不離身</h3><p>本網站是一個<strong>純客戶端（Client-side）應用程式</strong>。這意味著所有的程式碼都在您的瀏覽器中執行，我們沒有後端伺服器，也<strong>絕對不會</strong>儲存、傳輸或窺探您的任何資料。</p><ul><li><strong>心情雜記與所有記憶：</strong>您寫下的所有內容、AI 生成的對話摘要、雜記摘要、元摘要等，都只儲存在您目前使用的瀏覽器的本地儲存空間（Local Storage）中。資料只存在您的裝置上，除非您手動清除瀏覽器資料，否則它會一直留在那裡。</li><li><strong>API 金鑰：</strong>您輸入的 Google Gemini API 金鑰同樣也只儲存在您瀏覽器的本地儲存空間中。它只會被用來直接與 Google 的 AI 服務進行驗證及對話，絕不會被傳送到我們的伺服器或任何第三方。</li></ul><p>簡單來說，您的所有秘密都安全地鎖在您自己的裝置裡。我們無法、也無意存取您的任何個人資訊。</p>`,
+        'info.content.terms': `<h3>版權與免責聲明</h3><p>本網站的介面設計、圖像及程式碼版權為本站開發者所有。© 2025 AI 心理筆記. All Rights Reserved.</p><h3>免責聲明</h3><p>AI 心理筆記是一個旨在提供情緒支持與自我探索輔助的工具，但它<strong>不能取代專業的心理諮商或醫療診斷</strong>。</p><ul><li>AI（溫老師）提供的建議與分析，是基於大型語言模型的演算法生成，僅供參考。它可能無法完全理解您複雜的個人情況，也可能出現不準確或不恰當的回應。</li><li>請勿將 AI 的回覆視為專業醫療建議。若您正經歷嚴重的心理困擾、情緒危機，或有任何可能危及自己或他人的想法，<strong>請立即停止使用本工具，並尋求頁面下方提供的專業協助資源</strong>。</li><li>您應對自己在本網站上的所有行為，以及如何解讀和使用 AI 生成的內容負完全責任。對於因使用本工具而可能導致的任何直接或間接後果，本網站概不負責。</li></ul><p>使用本網站即表示您已閱讀、理解並同意以上條款。</p>`,
+        'dashboard.title': '近七日心情報告',
+        'dashboard.loading': 'AI 正在為您分析近七天的雜記，請稍候...',
+        'dashboard.no_entries': '最近七天內沒有足夠的雜記可以分析喔！至少需要一篇雜記才能生成報告。',
+        'dashboard.error': '抱歉，分析時發生錯誤。請稍後再試或檢查您的 API 金鑰設定。',
+        'dashboard.mood_bar_title': '七日平均心情',
+        'dashboard.analysis_title': '心情趨勢分析',
+        'dashboard.suggestions_title': '給你的小建議',
+        'sponsor.title': '這工具對你有幫助嗎？',
+        'sponsor.message': '給開發者一個支持！小額贊助他吧！金額隨喜！讓他有動力開發更好的工具。',
+        'sponsor.confirm_button': '立即前往支持',
+        'sponsor.decline_button': '我不想支持',
+        'memory_dashboard.title': '溫老師對你的了解',
+        'memory_dashboard.description': '溫老師跟人一樣，會努力記住我們聊過的事。對於越久遠的事情，他會記得一個大概的輪廓（長期記憶）；對於近期發生的事，則會有比較清晰的印象（中期與近期記憶）。您也可以在下方手動為他補充重要的記憶點。',
+        'memory_dashboard.input_label': '為溫老師補充記憶提醒：',
+        'memory_dashboard.input_placeholder': '例如：我下週有一個重要的面試，心情很緊張...',
+        'memory_dashboard.save_button': '儲存提醒',
+        'memory_dashboard.empty': '目前溫老師還沒有關於您的記憶。開始寫雜記或與他對話來建立記憶吧！',
+        'memory_dashboard.tag.meta': '長期記憶',
+        'memory_dashboard.tag.journal': '中期記憶',
+        'memory_dashboard.tag.conversation': '近期記憶',
+        'memory_dashboard.tag.reminder': '手動提醒'
+    },
+    'en': {
+        'meta.title': 'AI Mind Journal',
+        'meta.description': 'A private space centered around you to write your feelings, review your journey, and talk with a warm AI therapist when needed.',
+        'title': 'AI Mind Journal',
+        'subtitle': 'A private, understanding space that listens to your heart',
+        'header.sponsor': 'Sponsor the Developer',
+        'header.info': 'Site Information',
+        'header.settings': 'Settings',
+        'header.other_apps': "Author's Other Apps",
+        'other_apps.title': 'Web Apps by @Arvin Chen',
+        'footer.copyright': '© 2025 AI Mind Journal. All Rights Reserved.',
+        'reminder.title': 'Gentle Reminder',
+        'reminder.content': "I am an AI therapist designed to provide support and guidance, but I cannot replace professional medical diagnosis. If you are in significant distress, please seek professional help.",
+        'reminder.link': 'professional help',
+        'journal.title': "Write Down Today's Mood",
+        'journal.label': 'Journal Content',
+        'journal.placeholder': "What happened today? Are there any feelings or thoughts you'd like to record? Feel free to write anytime, whether happy or sad, this is a safe space...",
+        'journal.save_button': 'Save Today\'s Journal',
+        'journal.history_button': 'Review Mood Footprints',
+        'analysis.title': 'Smart Analysis Tools',
+        'analysis.mood_dashboard_button': 'Generate 7-Day Mood Report',
+        'psychologist.title': 'AI Therapist',
+        'psychologist.name': 'Dr. Sage',
+        'psychologist.description': 'A professionally trained AI therapist specializing in listening, empathy, and guiding you to explore your inner self.',
+        'psychologist.chat_button': 'Start Conversation',
+        'psychologist.memory_button': 'What Dr. Sage Knows About You',
+        'history.title': 'My Mood Footprints',
+        'history.start_date': 'Start Date',
+        'history.end_date': 'End Date',
+        'history.filter_button': 'Filter',
+        'history.empty_message': 'No journal entries during this period!',
+        'history.delete_button': 'Delete this entry',
+        'chat.modal.title': 'Conversation with {nickname}',
+        'chat.end_chat_button': 'End & Save Chat',
+        'chat.typing': '{nickname} is thinking...',
+        'chat.summarizing': '{nickname} is reviewing your notes...',
+        'chat.input_placeholder': 'Tell me how you feel...',
+        'chat.start_breathing': 'Start 4-7-8 Breathing Exercise',
+        'chat.stop_breathing': 'Stop Exercise',
+        'settings.title': 'Settings',
+        'settings.model_select': 'AI Model Name',
+        'settings.model_placeholder': 'e.g., gemini-1.5-flash-latest',
+        'settings.api_key_label': 'Your Google Gemini API Key',
+        'settings.api_key_placeholder': 'Paste your API key here',
+        'settings.get_api_key': 'Get your free key here ↗',
+        'settings.data_management': 'Data Management',
+        'settings.import_button': 'Import Journals',
+        'settings.export_button': 'Export Journals',
+        'settings.save': 'Save Settings',
+        'resources.title': 'Professional Mental Health Resources',
+        'resources.description': 'If you need immediate professional assistance, please use the following resources:',
+        'resources.line1': 'MOHW Relief Hotline: 1925',
+        'resources.line2': 'Lifeline Hotline: 1995',
+        'resources.line3': 'Teacher Chang Hotline: 1980',
+        'notification.no_api_key': 'Please enter your Gemini API key in "Settings" first!',
+        'notification.settings_saved': 'Settings have been saved!',
+        'notification.journal_saved': 'Journal entry saved successfully!',
+        'notification.journal_deleted': 'Journal entry has been deleted.',
+        'notification.journal_empty': 'Please write something before saving!',
+        'notification.saving_summary': 'Saving conversation memory, please wait...',
+        'notification.summary_saved': 'Conversation memory saved! Hope to chat again soon.',
+        'notification.summary_failed': 'Failed to save memory:',
+        'notification.generate_fail': 'Failed to send message:',
+        'notification.no_input': 'Please enter what you want to say.',
+        'notification.export_success': 'Journals exported successfully!',
+        'notification.export_failed': 'Journal export failed, no content to export.',
+        'notification.import_success': '{count} journal entries imported successfully!',
+        'notification.import_failed': 'Import failed. Please check if the file format is correct.',
+        'notification.reminder_saved': 'Memory reminder has been saved!',
+        'notification.reminder_empty': 'Please enter the content for the reminder.',
+        'info.title': 'Site Information',
+        'info.tab.about': 'About',
+        'info.tab.usage': 'Usage Guide',
+        'info.tab.privacy': 'Privacy Policy',
+        'info.tab.terms': 'Copyright & Disclaimer',
+        'info.content.about': `<h3>Welcome to AI Mind Journal</h3><p>This is a private mental space created just for you. We believe that writing is an effective way to organize thoughts and calm the mind. Here, you can record your moods, thoughts, and feelings anytime, anywhere, without worrying about being seen by others.</p><p>Besides being your digital mood diary, we have integrated a warm AI therapist—Dr. Sage. When you feel lost, stressed, or just want to talk, you can start a conversation with him at any time. He uses professional psychological knowledge to listen to your troubles and guide you to see problems from different perspectives.</p><p>We hope this tool can become a warm companion on your journey of self-care, accompanying you through every up and down.</p>`,
+        'info.content.usage': `<h3>How to Use This Tool?</h3><ol><li><strong><i class="ph-bold ph-pencil-line"></i> Write Down Your Mood:</strong> In the input box on the main screen, freely write anything you want to record, then click "Save Today's Journal".</li><li><strong><i class="ph-bold ph-book-open"></i> Review Footprints:</strong> Click the "Review Mood Footprints" button to view and filter all your past journal entries.</li><li><strong><i class="ph-bold ph-chart-line-up"></i> Mood Report:</strong> Click "Generate 7-Day Mood Report", and the AI will analyze your recent entries and provide a visualized mood dashboard with suggestions.</li><li><strong><i class="ph-bold ph-chats-circle"></i> Chat with AI:</strong> Click the "Start Conversation" button on the "AI Therapist" card for a one-on-one private chat with Dr. Sage. The AI will automatically review your unsummarized journal entries to better understand you.</li><li><strong><i class="ph-bold ph-brain"></i> View & Add Memory:</strong> Click "What Dr. Sage Knows About You" to see everything the AI remembers and manually add important memory points for him.</li><li><strong><i class="ph-bold ph-wind"></i> Breathing Exercise:</strong> If you feel anxious during the conversation, the AI may suggest a breathing exercise.</li><li><strong><i class="ph-bold ph-gear"></i> Configure Settings:</strong> Click the gear icon in the top right to set your Gemini API key, which is necessary for chatting with the AI.</li><li><strong><i class="ph-bold ph-download-simple"></i> Data Management:</strong> In "Settings", you can export all your journals and memories into a .json file for backup, or import your previous records from a backup file. <strong>You are in complete control of your data.</strong></li></ol>`,
+        'info.content.privacy': `<h3>Your Privacy is Paramount</h3><p>We understand the private nature of mental health, so this tool is designed with your privacy as the first priority. Please rest assured, this is an absolutely secure space.</p><h3>Purely Client-Side, Data Never Leaves Your Device</h3><p>This website is a <strong>purely client-side application</strong>. This means all code runs in your browser. We do not have a backend server and will <strong>absolutely not</strong> store, transmit, or peek at any of your data.</p><ul><li><strong>Mood Journals & All Memories:</strong> Everything you write, AI-generated conversation summaries, journal summaries, meta-summaries, etc., are stored only in your current browser's Local Storage. The data exists only on your device and will remain there unless you manually clear your browser data.</li><li><strong>API Key:</strong> Your Google Gemini API key is also stored only in your browser's Local Storage. It is only used to directly authenticate and communicate with Google's AI services and is never sent to our servers or any third party.</li></ul><p>In short, all your secrets are safely locked in your own device. We cannot and do not intend to access any of your personal information.</p>`,
+        'info.content.terms': `<h3>Copyright & Disclaimer</h3><p>The interface design, images, and code of this website are the copyright of the site developer. © 2025 AI Mind Journal. All Rights Reserved.</p><h3>Disclaimer</h3><p>AI Mind Journal is a tool intended to provide emotional support and aid in self-exploration, but it <strong>cannot replace professional psychological counseling or medical diagnosis</strong>.</p><ul><li>The advice and analysis provided by the AI (Dr. Sage) are generated based on large language model algorithms and are for reference only. It may not fully understand your complex personal situation and may provide inaccurate or inappropriate responses.</li><li>Do not treat the AI's responses as professional medical advice. If you are experiencing severe psychological distress, an emotional crisis, or have any thoughts that may endanger yourself or others, <strong>please immediately stop using this tool and seek the professional help resources provided at the bottom of the page</strong>.</li><li>You are fully responsible for all your actions on this website and for how you interpret and use the AI-generated content. This website is not liable for any direct or indirect consequences that may result from using this tool.</li></ul><p>By using this website, you indicate that you have read, understood, and agreed to the above terms.</p>`,
+        'dashboard.title': '7-Day Mood Report',
+        'dashboard.loading': 'The AI is analyzing your journal entries from the last seven days, please wait...',
+        'dashboard.no_entries': "There aren't enough journal entries in the last seven days to analyze! At least one entry is required to generate a report.",
+        'dashboard.error': 'Sorry, an error occurred during analysis. Please try again later or check your API key settings.',
+        'dashboard.mood_bar_title': '7-Day Average Mood',
+        'dashboard.analysis_title': 'Mood Trend Analysis',
+        'dashboard.suggestions_title': 'A Few Suggestions for You',
+        'sponsor.title': 'Is this tool helpful to you?',
+        'sponsor.message': 'Support the developer! A small sponsorship can motivate him to create even better tools. Any amount is appreciated!',
+        'sponsor.confirm_button': 'Sponsor Now',
+        'sponsor.decline_button': 'I prefer not to',
+        'memory_dashboard.title': 'What Dr. Sage Knows About You',
+        'memory_dashboard.description': 'Like a person, Dr. Sage tries to remember what we\'ve talked about. For older events, he remembers a general outline (Long-term Memory); for recent events, he has a clearer impression (Mid & Short-term Memory). You can also manually add important memory points for him below.',
+        'memory_dashboard.input_label': 'Add a memory reminder for Dr. Sage:',
+        'memory_dashboard.input_placeholder': 'e.g., I have an important interview next week and I am very nervous...',
+        'memory_dashboard.save_button': 'Save Reminder',
+        'memory_dashboard.empty': 'Dr. Sage has no memories of you yet. Start writing journals or chatting with him to build memories!',
+        'memory_dashboard.tag.meta': 'Long-term',
+        'memory_dashboard.tag.journal': 'Mid-term',
+        'memory_dashboard.tag.conversation': 'Short-term',
+        'memory_dashboard.tag.reminder': 'Manual'
+    },
+    'ja': {
+        'meta.title': 'AI こころのノート',
+        'meta.description': 'あなた中心のプライベートな空間。気持ちを書き、足跡を振り返り、必要な時には温かいAIセラピストと対話できます。',
+        'title': 'AI こころのノート',
+        'subtitle': 'あなたの心を理解し、耳を傾けるプライベートな空間',
+        'header.sponsor': '開発者を支援',
+        'header.info': 'サイト情報',
+        'header.settings': '設定',
+        'header.other_apps': '作者の他のアプリ',
+        'other_apps.title': '@Arvin Chen 開発のWebアプリ一覧',
+        'footer.copyright': '© 2025 AI こころのノート. All Rights Reserved.',
+        'reminder.title': '安心のためのリマインダー',
+        'reminder.content': '私はサポートと導きを提供するAIセラピストですが、専門的な医療診断に代わることはできません。非常にお辛い場合は、必ず専門家の助けを求めてください。',
+        'reminder.link': '専門家の助け',
+        'journal.title': '今日の気持ちを書き留める',
+        'journal.label': '日記の内容',
+        'journal.placeholder': '今日は何がありましたか？記録したい気持ちや考えはありますか？嬉しい時も悲しい時も、いつでも書き留めてください。ここは安全な空間です…',
+        'journal.save_button': '今日の日記を保存',
+        'journal.history_button': '心の足跡を振り返る',
+        'analysis.title': 'スマート分析ツール',
+        'analysis.mood_dashboard_button': '過去7日間の気分レポートを作成',
+        'psychologist.title': 'AIセラピスト',
+        'psychologist.name': '温先生 (On-sensei)',
+        'psychologist.description': '専門的な訓練を受けたAIセラピスト。傾聴、共感し、あなたの内面を探る手助けを専門としています。',
+        'psychologist.chat_button': '対話を開始',
+        'psychologist.memory_button': '温先生があなたについて知っていること',
+        'history.title': '私の心の足跡',
+        'history.start_date': '開始日',
+        'history.end_date': '終了日',
+        'history.filter_button': '絞り込む',
+        'history.empty_message': 'この期間の日記はありません！',
+        'history.delete_button': 'この記録を削除',
+        'chat.modal.title': '{nickname} との対話',
+        'chat.end_chat_button': '対話を終了して保存',
+        'chat.typing': '{nickname} が考えています...',
+        'chat.summarizing': '{nickname} があなたのノートを読み返しています...',
+        'chat.input_placeholder': 'あなたの気持ちを話してください…',
+        'chat.start_breathing': '4-7-8呼吸法を開始',
+        'chat.stop_breathing': '練習を停止',
+        'settings.title': '設定',
+        'settings.model_select': 'AIモデル名',
+        'settings.model_placeholder': '例: gemini-1.5-flash-latest',
+        'settings.api_key_label': 'あなたの Google Gemini API キー',
+        'settings.api_key_placeholder': 'ここにAPIキーを貼り付けてください',
+        'settings.get_api_key': 'ここから無料キーを取得 ↗',
+        'settings.data_management': 'データ管理',
+        'settings.import_button': '日記をインポート',
+        'settings.export_button': '日記をエクスポート',
+        'settings.save': '設定を保存',
+        'resources.title': '専門的な心の相談窓口',
+        'resources.description': 'すぐに専門的な助けが必要な場合は、以下の相談窓口をご利用ください（日本の窓口例）：',
+        'resources.line1': 'こころの健康相談統一ダイヤル',
+        'resources.line2': 'いのちの電話',
+        'resources.line3': 'よりそいホットライン',
+        'notification.no_api_key': '先に「設定」でGemini APIキーを入力してください！',
+        'notification.settings_saved': '設定が保存されました！',
+        'notification.journal_saved': '日記が正常に保存されました！',
+        'notification.journal_deleted': '日記が削除されました。',
+        'notification.journal_empty': '保存する前に何か内容を書いてください！',
+        'notification.saving_summary': '対話の記憶を保存しています、少々お待ちください…',
+        'notification.summary_saved': '対話の記憶が保存されました！またのお越しをお待ちしています。',
+        'notification.summary_failed': '記憶の保存に失敗しました：',
+        'notification.generate_fail': 'メッセージの送信に失敗しました：',
+        'notification.no_input': '話したいことを入力してください。',
+        'notification.export_success': '日記が正常にエクスポートされました！',
+        'notification.export_failed': 'エクスポートに失敗しました。エクスポートする内容がありません。',
+        'notification.import_success': '{count}件の日記が正常にインポートされました！',
+        'notification.import_failed': 'インポートに失敗しました。ファイル形式が正しいか確認してください。',
+        'notification.reminder_saved': '記憶リマインダーが保存されました！',
+        'notification.reminder_empty': 'リマインドする内容を入力してください。',
+        'info.title': 'サイト情報',
+        'info.tab.about': 'このサイトについて',
+        'info.tab.usage': '使い方',
+        'info.tab.privacy': 'プライバシーポリシー',
+        'info.tab.terms': '著作権と免責事項',
+        'info.content.about': `<h3>AI こころのノートへようこそ</h3><p>ここは、あなたのために作られたプライベートな心の空間です。書くことは、思考を整理し、心を落ち着かせる効果的な方法だと私たちは信じています。ここでは、いつでもどこでも、他人の目を気にすることなく、あなたの気分や考え、感情を記録できます。</p><p>デジタルの気分日記としてだけでなく、温かいAIセラピスト「温先生」も内蔵されています。道に迷ったり、ストレスを感じたり、ただ誰かと話したい時、いつでも彼と対話を始めることができます。彼は専門的な心理学の知識を活かして、あなたの悩みに耳を傾け、異なる角度から問題を見る手助けをします。</p><p>このツールが、あなたのセルフケアの旅における温かいパートナーとなり、人生の浮き沈みを共に歩むことを願っています。</p>`,
+        'info.content.usage': `<h3>このツールの使い方</h3><ol><li><strong><i class="ph-bold ph-pencil-line"></i> 気持ちを書く：</strong>メイン画面の入力ボックスに、記録したいことを自由に書き、「今日の日記を保存」をクリックします。</li><li><strong><i class="ph-bold ph-book-open"></i> 足跡を振り返る：</strong>「心の足跡を振り返る」ボタンをクリックすると、過去のすべての日記を閲覧・絞り込みできます。</li><li><strong><i class="ph-bold ph-chart-line-up"></i> 気分レポート：</strong>「過去7日間の気分レポートを作成」をクリックすると、AIが最近の記録を分析し、視覚化された気分ダッシュボードと提案を提供します。</li><li><strong><i class="ph-bold ph-chats-circle"></i> AIと対話する：</strong>「AIセラピスト」カードの「対話を開始」ボタンをクリックすると、温先生と一対一のプライベートなチャットができます。AIはあなたをより良く理解するため、まだ要約されていない日記を自動的に読み返します。</li><li><strong><i class="ph-bold ph-brain"></i> 記憶の確認と補足：</strong>「温先生があなたについて知っていること」をクリックすると、AIが現在覚えているすべての事柄を確認し、手動で重要な記憶ポイントを補足できます。</li><li><strong><i class="ph-bold ph-wind"></i> 呼吸法：</strong>対話中に不安を感じた場合、AIが呼吸法を提案することがあります。</li><li><strong><i class="ph-bold ph-gear"></i> 設定を行う：</strong>右上の歯車アイコンをクリックして、AIとの対話に必要なGemini APIキーを設定できます。</li><li><strong><i class="ph-bold ph-download-simple"></i> データ管理：</strong>「設定」で、すべての日記と記憶をバックアップ用の.jsonファイルとしてエクスポートしたり、バックアップファイルから以前の記録をインポートしたりできます。<strong>あなたのデータは、完全にあなたの管理下にあります。</strong></li></ol>`,
+        'info.content.privacy': `<h3>あなたのプライバシーは最優先です</h3><p>私たちはメンタルヘルスのプライベートな性質を深く理解しているため、このツールはあなたのプライバシーを第一に考えて設計されています。ここは絶対に安全な空間ですので、ご安心ください。</p><h3>純粋なフロントエンド動作、データはあなたのデバイスから離れません</h3><p>このウェブサイトは<strong>純粋なクライアントサイドアプリケーション</strong>です。これは、すべてのコードがあなたのブラウザ内で実行されることを意味します。私たちにはバックエンドサーバーはなく、あなたのいかなるデータも<strong>絶対に</strong>保存、転送、閲覧することはありません。</p><ul><li><strong>気分日記とすべての記憶：</strong>あなたが書いたすべての内容、AIが生成した対話の要約、日記の要約、メタ要約などは、すべて現在使用しているブラウザのローカルストレージにのみ保存されます。データはあなたのデバイス上にのみ存在し、手動でブラウザのデータを消去しない限り、そこに残り続けます。</li><li><strong>APIキー：</strong>入力したGoogle Gemini APIキーも同様に、ブラウザのローカルストレージにのみ保存されます。それはGoogleのAIサービスとの認証および対話に直接使用されるだけで、私たちのサーバーや第三者に送信されることは決してありません。</li></ul><p>要するに、あなたのすべての秘密は、あなた自身のデバイスの中に安全に保管されています。私たちはあなたの個人情報にアクセスすることはできませんし、その意図もありません。</p>`,
+        'info.content.terms': `<h3>著作権と免責事項</h3><p>このウェブサイトのインターフェースデザイン、画像、およびプログラムコードの著作権は、サイト開発者に帰属します。© 2025 AI こころのノート. All Rights Reserved.</p><h3>免責事項</h3><p>「AI こころのノート」は、感情的なサポートと自己探求の補助を目的としたツールですが、<strong>専門的な心理カウンセリングや医療診断に代わるものではありません</strong>。</p><ul><li>AI（温先生）が提供するアドバイスや分析は、大規模言語モデルのアルゴリズムに基づいて生成されたものであり、参考情報に過ぎません。あなたの複雑な個人的状況を完全に理解できない可能性があり、不正確または不適切な応答をすることもあります。</li><li>AIの応答を専門的な医療アドバイスと見なさないでください。深刻な心理的苦痛、感情的な危機、または自他を危険にさらす可能性のある考えを経験している場合は、<strong>直ちにこのツールの使用を中止し、ページ下部に記載されている専門的な支援窓口に助けを求めてください</strong>。</li><li>あなたはこのウェブサイト上でのすべての行動、およびAIが生成したコンテンツの解釈と使用方法について、全責任を負うものとします。このツールの使用に起因する可能性のあるいかなる直接的または間接的な結果についても、当サイトは一切の責任を負いません。</li></ul><p>このウェブサイトを使用することにより、あなたは上記の条項を読み、理解し、同意したものとみなされます。</p>`,
+        'dashboard.title': '過去7日間の気分レポート',
+        'dashboard.loading': 'AIが過去7日間の日記を分析しています。少々お待ちください…',
+        'dashboard.no_entries': '過去7日間に分析できる日記がありません！レポートを作成するには、少なくとも1件の日記が必要です。',
+        'dashboard.error': '申し訳ありません、分析中にエラーが発生しました。後でもう一度試すか、APIキーの設定を確認してください。',
+        'dashboard.mood_bar_title': '7日間の平均気分',
+        'dashboard.analysis_title': '気分の傾向分析',
+        'dashboard.suggestions_title': 'あなたへの小さな提案',
+        'sponsor.title': 'このツールは役に立ちましたか？',
+        'sponsor.message': '開発者を支援しませんか？少額の寄付が、より良いツールを開発する彼のモチベーションになります。金額は自由です！',
+        'sponsor.confirm_button': 'すぐに支援する',
+        'sponsor.decline_button': '支援しない',
+        'memory_dashboard.title': '温先生があなたについて知っていること',
+        'memory_dashboard.description': '温先生は人間のように、私たちが話したことを覚えようとします。昔のことについては大まかな概要（長期記憶）を、最近のことについてはより鮮明な印象（中期・短期記憶）を持っています。以下で手動で重要な記憶ポイントを彼に補足することもできます。',
+        'memory_dashboard.input_label': '温先生に記憶リマインダーを補足する：',
+        'memory_dashboard.input_placeholder': '例：来週、大事な面接があって、とても緊張しています…',
+        'memory_dashboard.save_button': 'リマインダーを保存',
+        'memory_dashboard.empty': '現在、温先生にはあなたに関する記憶がありません。日記を書き始めたり、彼と対話したりして記憶を築きましょう！',
+        'memory_dashboard.tag.meta': '長期記憶',
+        'memory_dashboard.tag.journal': '中期記憶',
+        'memory_dashboard.tag.conversation': '短期記憶',
+        'memory_dashboard.tag.reminder': '手動'
+    }
+};
 
             // ==================== Initialization ====================
             function initialize() {
-                const savedApiKey = localStorage.getItem('geminiApiKeyForJournal');
-                const savedModel = localStorage.getItem('selectedModelForJournal') || 'gemini-2.5-flash-lite';
-                if (savedApiKey) dom.geminiApiKey.value = savedApiKey;
-                dom.modelInputModal.value = savedModel;
+    const savedApiKey = localStorage.getItem('geminiApiKeyForJournal');
+    const savedModel = localStorage.getItem('selectedModelForJournal') || 'gemini-1.5-flash-latest';
+    if (savedApiKey) dom.geminiApiKey.value = savedApiKey;
+    dom.modelInputModal.value = savedModel;
 
-                updateUIWithTranslations();
-                setupEventListeners();
-                renderPsychologistCard();
-            }
+    const savedLang = localStorage.getItem('journalLang') || 'zh-TW';
+    setLanguage(savedLang); // Set initial language
+
+    setupEventListeners();
+    // renderPsychologistCard is now called inside setLanguage
+}
 
             function updateUIWithTranslations() {
-                const t = i18nData['zh-TW'];
-                document.querySelectorAll('[data-i18n]').forEach(el => {
-                    const key = el.dataset.i18n;
-                    if (t[key]) {
-                        const icon = el.querySelector('i');
-                        let textContent = t[key];
-                        // Handle cases where the key is for an element with both icon and text
-                        if (el.querySelector('span')) {
-                           el.querySelector('span').textContent = textContent;
-                        } else if (icon) {
-                            el.innerHTML = '';
-                            el.appendChild(icon);
-                            el.appendChild(document.createTextNode(' ' + textContent));
-                        }
-                        else {
-                            el.textContent = textContent;
-                        }
-                    }
-                });
-                document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
-                    const key = el.dataset.i18nPlaceholder;
-                    if (t[key]) el.placeholder = t[key];
-                });
-                document.querySelectorAll('[data-i18n-title]').forEach(el => {
-                    const key = el.dataset.i18nTitle;
-                    if (t[key]) el.title = t[key];
-                });
+    // 't' is now a global variable, no need to define it here.
+    document.documentElement.lang = currentLanguage.split('-')[0];
+
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        if (t[key]) {
+            const icon = el.querySelector('i');
+            let textContent = t[key];
+            if (el.querySelector('span')) {
+               el.querySelector('span').textContent = textContent;
+            } else if (icon) {
+                el.innerHTML = '';
+                el.appendChild(icon);
+                el.appendChild(document.createTextNode(' ' + textContent));
             }
+            else {
+                el.textContent = textContent;
+            }
+        }
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.dataset.i18nPlaceholder;
+        if (t[key]) el.placeholder = t[key];
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.dataset.i18nTitle;
+        if (t[key]) el.title = t[key];
+    });
+    // Dynamically update chat loading text placeholder
+    if(dom.chatLoadingText) {
+        dom.chatLoadingText.dataset.i18n = 'chat.typing';
+        dom.chatLoadingText.textContent = t['chat.typing'].replace('{nickname}', t['psychologist.name']);
+    }
+}
+function setLanguage(lang) {
+    currentLanguage = lang;
+    t = i18nData[lang];
+    localStorage.setItem('journalLang', lang);
+
+    // Update UI
+    updateUIWithTranslations();
+    renderPsychologistCard();
+
+    // Update language switcher style
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        if (btn.dataset.lang === lang) {
+            btn.classList.add('theme-bg-primary', 'text-white');
+            btn.classList.remove('hover:bg-gray-200');
+        } else {
+            btn.classList.remove('theme-bg-primary', 'text-white');
+            btn.classList.add('hover:bg-gray-200');
+        }
+    });
+}
 
             // ==================== Event Listeners ====================
             function setupEventListeners() {
                 dom.journalForm.addEventListener('submit', handleSaveJournalEntry);
+document.getElementById('language-switcher').addEventListener('click', (e) => {
+    if (e.target.matches('.lang-btn')) {
+        const lang = e.target.dataset.lang;
+        setLanguage(lang);
+    }
+});
                 dom.openHistoryModalBtn.addEventListener('click', openHistoryModal);
                 dom.filterJournalsBtn.addEventListener('click', () => renderJournalHistory(true));
                 dom.chatForm.addEventListener('submit', handleSendMessage);
@@ -1427,19 +1677,22 @@
 
             // ==================== Helpers & UI & Modals ====================
             function formatTimestamp(isoString) {
-                if (!isoString) return '';
-                return new Date(isoString).toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
-            }
+    if (!isoString) return '';
+    const locale = i18nLocales[currentLanguage] || 'default';
+    return new Date(isoString).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: false });
+}
 
             function formatDate(isoString) {
-                if (!isoString) return '';
-                return new Date(isoString).toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' });
-            }
+    if (!isoString) return '';
+    const locale = i18nLocales[currentLanguage] || 'default';
+    return new Date(isoString).toLocaleDateString(locale, { year: 'numeric', month: '2-digit', day: '2-digit' });
+}
 
             function formatDateTime(isoString) {
-                if (!isoString) return '';
-                return new Date(isoString).toLocaleString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).replace(/\//g, '-');
-            }
+    if (!isoString) return '';
+    const locale = i18nLocales[currentLanguage] || 'default';
+    return new Date(isoString).toLocaleString(locale, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).replace(/\//g, '-');
+}
 
             function saveSettings() {
                 localStorage.setItem('geminiApiKeyForJournal', dom.geminiApiKey.value.trim());
@@ -1492,5 +1745,6 @@
     </script>
 </body>
 </html>
+
 
 

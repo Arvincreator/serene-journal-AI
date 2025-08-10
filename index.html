@@ -949,7 +949,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
 
             // ==================== Core App Logic: UI Rendering ====================
             function renderPsychologistCard() {
-                const t = i18nData['zh-TW'];
+                 
                 const card = document.createElement('div');
                 card.className = 'card-hover-effect theme-bg-card rounded-xl p-5 flex flex-col sm:flex-row items-center gap-6 shadow-lg transition-all duration-200';
                 card.innerHTML = `
@@ -991,7 +991,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
                 }
                 dom.noJournalsMessage.classList.add('hidden');
 
-                const t = i18nData['zh-TW'];
+                 
                 entries.forEach(entry => {
                     const card = document.createElement('div');
                     card.className = 'theme-bg-input rounded-xl p-4 flex flex-col gap-2 shadow-sm border theme-border';
@@ -1019,7 +1019,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
 
             // ==================== Mood Dashboard Logic ====================
             async function handleGenerateMoodReport() {
-                const t = i18nData['zh-TW'];
+                 
                 const apiKey = localStorage.getItem('geminiApiKeyForJournal');
                 if (!apiKey) {
                     showNotification(t['notification.no_api_key'], 'error');
@@ -1055,7 +1055,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
             }
 
             function renderMoodDashboard(data) {
-                const t = i18nData['zh-TW'];
+                 
                 const score = data.averageScore || 0;
                 const percentage = ((score + 10) / 20) * 100;
                 
@@ -1094,7 +1094,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
             }
 
             function renderMoodDashboardLoading() {
-                const t = i18nData['zh-TW'];
+                 
                 dom.moodDashboardContent.innerHTML = `
                     <div class="flex flex-col items-center justify-center text-center py-12">
                         <div class="spinner w-10 h-10 border-4 rounded-full mb-4"></div>
@@ -1132,7 +1132,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
 
             function handleSaveJournalEntry(event) {
                 event.preventDefault();
-                const t = i18nData['zh-TW'];
+                 
                 const content = dom.journalContent.value.trim();
                 if (!content) {
                     showNotification(t['notification.journal_empty'], 'error');
@@ -1178,7 +1178,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
             }
 
             function populateInfoModal() {
-                const t = i18nData['zh-TW'];
+                 
                 dom.tabContentAbout.innerHTML = t['info.content.about'] || '';
                 dom.tabContentUsage.innerHTML = t['info.content.usage'] || '';
                 dom.tabContentPrivacy.innerHTML = t['info.content.privacy'] || '';
@@ -1187,7 +1187,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
 
             // ==================== Data Import/Export ====================
             function handleExportData() {
-                const t = i18nData['zh-TW'];
+                 
                 const dataToExport = {
                     journalEntries: getFromStorage('mood_journal_entries'),
                     journalSummaries: getFromStorage('journal_summaries'),
@@ -1247,7 +1247,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
 
             // ==================== Chat Logic & Memory Processing ====================
             async function handleStartChat() {
-                const t = i18nData['zh-TW'];
+                 
                 const apiKey = localStorage.getItem('geminiApiKeyForJournal');
                 if (!apiKey) {
                     showNotification(t['notification.no_api_key'], 'error');
@@ -1368,7 +1368,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
             }
 
             async function handleEndChat() {
-                const t = i18nData['zh-TW'];
+                 
                 if (conversationHistory.length > 1) {
                     showNotification(t['notification.saving_summary'], 'info');
                     try {
@@ -1428,7 +1428,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
             }
 
             function renderActionButton(actionType) {
-                const t = i18nData['zh-TW'];
+                 
                 if (actionType === 'breathing_exercise') {
                     const button = document.createElement('button');
                     button.className = 'theme-bg-primary theme-bg-primary-hover text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-transform active:scale-95';
@@ -1440,7 +1440,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
             }
 
             function setChatLoading(isLoading, messageKey = 'chat.typing') {
-                const t = i18nData['zh-TW'];
+                 
                 dom.chatLoadingIndicator.classList.toggle('hidden', !isLoading);
                 dom.chatLoadingIndicator.classList.toggle('flex', isLoading);
                 dom.chatLoadingText.textContent = t[messageKey] || t['chat.typing'];
@@ -1454,7 +1454,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
 
             // ==================== Memory Dashboard Logic ====================
             function openMemoryDashboard() {
-                const t = i18nData['zh-TW'];
+                 
                 dom.memoryDisplayArea.innerHTML = '';
 
                 const metaSummaries = getFromStorage('meta_summaries').map(s => ({ ...s, type: 'meta' }));
@@ -1477,7 +1477,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
             }
 
             function createMemoryCard(memory) {
-                const t = i18nData['zh-TW'];
+                 
                 const card = document.createElement('div');
                 card.className = 'theme-bg-input rounded-xl p-4 shadow-sm border theme-border';
 
@@ -1512,7 +1512,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
             
             function handleSaveMemoryReminder(event) {
                 event.preventDefault();
-                const t = i18nData['zh-TW'];
+                 
                 const content = dom.memoryReminderInput.value.trim();
                 if (!content) {
                     showNotification(t['notification.reminder_empty'], 'error');
@@ -1571,7 +1571,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
 
             // ==================== AI Prompt Engineering ====================
             async function createChatPrompt() {
-                const t = i18nData['zh-TW'];
+                 
 
                 const metaSummaries = getFromStorage('meta_summaries');
                 const journalSummaries = getFromStorage('journal_summaries');

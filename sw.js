@@ -1,14 +1,10 @@
-const CACHE_NAME = 'ai-journal-v1';
+const CACHE_NAME = 'ai-journal-v2'; // 更新版本號以觸發更新
 // 列出需要被快取的核心檔案
 const urlsToCache = [
   '/',
-  '/index.html',
-  // 注意：如果您有自己的 CSS 或 JS 檔案，也要加進來
-  // '/css/style.css', 
-  // '/js/app.js',
-  // 注意：請將您專案用到的圖示、logo 等靜態圖片資源也加進來
-  '/images/icons/icon-192x192.png',
-  '/images/icons/icon-512x512.png'
+  '/index.html'
+  // 注意：我們不再快取外部的圖示 URL，以避免複雜的跨域快取問題。
+  // 瀏覽器會用標準的 HTTP 快取來處理它們。
 ];
 
 // 事件：install
@@ -18,7 +14,6 @@ self.addEventListener('install', event => {
     caches.open(CACHE_NAME)
       .then(cache => {
         console.log('Opened cache');
-        // addAll 會一次請求所有資源並快取
         return cache.addAll(urlsToCache);
       })
   );
@@ -49,6 +44,7 @@ self.addEventListener('activate', event => {
       return Promise.all(
         cacheNames.map(cacheName => {
           if (cacheWhitelist.indexOf(cacheName) === -1) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })

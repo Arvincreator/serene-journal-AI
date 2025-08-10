@@ -164,7 +164,7 @@
 
         <!-- 心情雜記輸入 -->
         <section class="w-full theme-bg-card rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
-            <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-pencil-line theme-primary"></i> <span data-i18n="journal.title">寫下今天的心情</span></h2>
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-pencil-line theme-primary"></i> <span id="personalized-journal-title" data-i18n="journal.title">寫下今天的心情</span></h2>
             <form id="journal-form" class="space-y-5">
                 <div>
                     <label for="journal-content" class="sr-only" data-i18n="journal.label">雜記內容</label>
@@ -422,6 +422,10 @@
                 <button class="modal-close text-slate-400 hover:theme-text"><i class="ph-bold ph-x text-2xl"></i></button>
             </div>
             <div class="space-y-6">
+                <div>
+                     <label for="nickname-input-modal" class="block mb-2 text-sm font-medium" data-i18n="settings.nickname">你的暱稱</label>
+                     <input type="text" id="nickname-input-modal" class="w-full theme-bg-input theme-border theme-text rounded-lg focus:ring-2 theme-ring-focus focus:border-transparent block p-3" data-i18n-placeholder="settings.nickname_placeholder">
+                 </div>
                  <div>
                      <label for="model-input-modal" class="block mb-2 text-sm font-medium" data-i18n="settings.model_select">AI 模型名稱</label>
                      <input type="text" id="model-input-modal" class="w-full theme-bg-input theme-border theme-text rounded-lg focus:ring-2 theme-ring-focus focus:border-transparent block p-3" data-i18n-placeholder="settings.model_placeholder">
@@ -486,6 +490,8 @@ let t; // This will hold the translations for the current language
             const dom = {};
             const elementIds = [
                 'open-settings-modal-btn',
+'nickname-input-modal',
+                'personalized-journal-title',
                 'journal-form', 'journal-content', 'save-journal-btn', 'open-history-modal-btn',
                 'psychologist-card-container',
                 'history-modal', 'start-date', 'end-date', 'filter-journals-btn', 'journal-history-list', 'no-journals-message',
@@ -561,6 +567,9 @@ let t; // This will hold the translations for the current language
         'settings.import_button': '匯入雜記',
         'settings.export_button': '匯出雜記',
         'settings.save': '儲存設定',
+       'settings.nickname': '你的暱稱',
+        'settings.nickname_placeholder': '溫老師該怎麼稱呼你？',
+        'journal.title.personalized': '{nickname}，今天好嗎？來記錄一下發生了什麼事吧',
         'resources.title': '專業心理協助資源',
         'resources.description': '若您需要即時的專業協助，請隨時利用以下資源：',
         'resources.line1': '衛福部安心專線：1925',
@@ -662,6 +671,9 @@ let t; // This will hold the translations for the current language
         'settings.import_button': 'Import Journals',
         'settings.export_button': 'Export Journals',
         'settings.save': 'Save Settings',
+       'settings.nickname': 'Your Nickname',
+        'settings.nickname_placeholder': 'How should Dr. Sage address you?',
+        'journal.title.personalized': '{nickname}, how are you today? Let\'s write down what happened',
         'resources.title': 'Professional Mental Health Resources',
         'resources.description': 'If you need immediate professional assistance, please use the following resources:',
         'resources.line1': 'MOHW Relief Hotline: 1925',
@@ -763,6 +775,9 @@ let t; // This will hold the translations for the current language
         'settings.import_button': '日記をインポート',
         'settings.export_button': '日記をエクスポート',
         'settings.save': '設定を保存',
+       'settings.nickname': 'あなたのニックネーム',
+        'settings.nickname_placeholder': '温先生に何と呼んでもらいましょうか？',
+        'journal.title.personalized': '{nickname}さん、今日はいかがでしたか？何があったか記録してみましょう',
         'resources.title': '専門的な心の相談窓口',
         'resources.description': 'すぐに専門的な助けが必要な場合は、以下の相談窓口をご利用ください（日本の窓口例）：',
         'resources.line1': 'こころの健康相談統一ダイヤル',
@@ -819,31 +834,37 @@ let t; // This will hold the translations for the current language
 
 
             // ==================== Initialization ====================
-            function initialize() {
+                       function initialize() {
     const savedApiKey = localStorage.getItem('geminiApiKeyForJournal');
     const savedModel = localStorage.getItem('selectedModelForJournal') || 'gemini-1.5-flash-latest';
+    const savedNickname = localStorage.getItem('userNicknameForJournal') || '';
+
     if (savedApiKey) dom.geminiApiKey.value = savedApiKey;
     dom.modelInputModal.value = savedModel;
+    dom.nicknameInputModal.value = savedNickname;
+
 
     const savedLang = localStorage.getItem('journalLang') || 'zh-TW';
-    setLanguage(savedLang); // Set initial language
+    setLanguage(savedLang); // This will also call updateUIWithTranslations
 
     setupEventListeners();
-    // renderPsychologistCard is now called inside setLanguage
 }
 
-            function updateUIWithTranslations() {
-    // 't' is now a global variable, no need to define it here.
+                       function updateUIWithTranslations() {
     document.documentElement.lang = currentLanguage.split('-')[0];
 
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.dataset.i18n;
         if (t[key]) {
+             // We handle the personalized title separately
+            if (el.id === 'personalized-journal-title') return;
+
             const icon = el.querySelector('i');
             let textContent = t[key];
             if (el.querySelector('span')) {
                el.querySelector('span').textContent = textContent;
-            } else if (icon) {
+            } 
+            else if (icon) {
                 el.innerHTML = '';
                 el.appendChild(icon);
                 el.appendChild(document.createTextNode(' ' + textContent));
@@ -861,7 +882,16 @@ let t; // This will hold the translations for the current language
         const key = el.dataset.i18nTitle;
         if (t[key]) el.title = t[key];
     });
-    // Dynamically update chat loading text placeholder
+
+    // Handle personalized journal title
+    const nickname = localStorage.getItem('userNicknameForJournal') || '';
+    if (nickname && dom.personalizedJournalTitle) {
+        dom.personalizedJournalTitle.textContent = t['journal.title.personalized'].replace('{nickname}', nickname);
+    } else if (dom.personalizedJournalTitle) {
+        dom.personalizedJournalTitle.textContent = t['journal.title'];
+    }
+    
+    // Dynamically update chat loading text placeholder to use AI's name
     if(dom.chatLoadingText) {
         dom.chatLoadingText.dataset.i18n = 'chat.typing';
         dom.chatLoadingText.textContent = t['chat.typing'].replace('{nickname}', t['psychologist.name']);
@@ -1707,11 +1737,13 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
     return new Date(isoString).toLocaleString(locale, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).replace(/\//g, '-');
 }
 
-            function saveSettings() {
+                       function saveSettings() {
                 localStorage.setItem('geminiApiKeyForJournal', dom.geminiApiKey.value.trim());
-                localStorage.setItem('selectedModelForJournal', dom.modelInputModal.value.trim() || 'gemini-2.5-flash-lite');
+                localStorage.setItem('selectedModelForJournal', dom.modelInputModal.value.trim() || 'gemini-1.5-flash-latest');
+                localStorage.setItem('userNicknameForJournal', dom.nicknameInputModal.value.trim());
                 closeModal(dom.settingsModal);
-                showNotification(i18nData['zh-TW']['notification.settings_saved'], 'success');
+                showNotification(t['notification.settings_saved'], 'success');
+                updateUIWithTranslations(); // Re-render UI with new nickname
             }
 
             function openModal(modal) {

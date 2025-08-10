@@ -891,7 +891,12 @@ let t; // This will hold the translations for the current language
         dom.personalizedJournalTitle.textContent = t['journal.title'];
     }
     
+    // Dynamically update chat loading text placeholder to use AI's name
+    if(dom.chatLoadingText) {
+        dom.chatLoadingText.dataset.i18n = 'chat.typing';
+        dom.chatLoadingText.textContent = t['chat.typing'].replace('{nickname}', t['psychologist.name']);
     }
+}
 function setLanguage(lang) {
     currentLanguage = lang;
     t = i18nData[lang];
@@ -1480,7 +1485,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
                  
                 dom.chatLoadingIndicator.classList.toggle('hidden', !isLoading);
                 dom.chatLoadingIndicator.classList.toggle('flex', isLoading);
-                dom.chatLoadingText.textContent = (t[messageKey] || t['chat.typing']).replace('{nickname}',
+                dom.chatLoadingText.textContent = t[messageKey] || t['chat.typing'];
                 dom.sendMessageBtn.disabled = isLoading;
                 dom.chatInput.disabled = isLoading;
                 if (isLoading) {
@@ -1785,6 +1790,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
     </script>
 </body>
 </html>
+
 
 
 

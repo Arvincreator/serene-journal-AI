@@ -559,7 +559,7 @@ let t; // This will hold the translations for the current language
         'chat.stop_breathing': '停止練習',
         'settings.title': '設定',
         'settings.model_select': 'AI 模型名稱',
-        'settings.model_placeholder': '例如: gemini-1.5-flash-latest',
+        'settings.model_placeholder': '例如: gemini-2.5-flash-lite',
         'settings.api_key_label': '您的 Google Gemini API 金鑰',
         'settings.api_key_placeholder': '請在此貼上您的金鑰',
         'settings.get_api_key': '點此免費獲取金鑰 ↗',
@@ -663,7 +663,7 @@ let t; // This will hold the translations for the current language
         'chat.stop_breathing': 'Stop Exercise',
         'settings.title': 'Settings',
         'settings.model_select': 'AI Model Name',
-        'settings.model_placeholder': 'e.g., gemini-1.5-flash-latest',
+        'settings.model_placeholder': 'e.g., gemini-2.5-flash-lite',
         'settings.api_key_label': 'Your Google Gemini API Key',
         'settings.api_key_placeholder': 'Paste your API key here',
         'settings.get_api_key': 'Get your free key here ↗',
@@ -767,7 +767,7 @@ let t; // This will hold the translations for the current language
         'chat.stop_breathing': '練習を停止',
         'settings.title': '設定',
         'settings.model_select': 'AIモデル名',
-        'settings.model_placeholder': '例: gemini-1.5-flash-latest',
+        'settings.model_placeholder': '例: gemini-2.5-flash-lite',
         'settings.api_key_label': 'あなたの Google Gemini API キー',
         'settings.api_key_placeholder': 'ここにAPIキーを貼り付けてください',
         'settings.get_api_key': 'ここから無料キーを取得 ↗',
@@ -836,7 +836,7 @@ let t; // This will hold the translations for the current language
             // ==================== Initialization ====================
                        function initialize() {
     const savedApiKey = localStorage.getItem('geminiApiKeyForJournal');
-    const savedModel = localStorage.getItem('selectedModelForJournal') || 'gemini-1.5-flash-latest';
+    const savedModel = localStorage.getItem('selectedModelForJournal') || 'gemini-2.5-flash-lite';
     const savedNickname = localStorage.getItem('userNicknameForJournal') || '';
 
     if (savedApiKey) dom.geminiApiKey.value = savedApiKey;
@@ -1739,7 +1739,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
 
                        function saveSettings() {
                 localStorage.setItem('geminiApiKeyForJournal', dom.geminiApiKey.value.trim());
-                localStorage.setItem('selectedModelForJournal', dom.modelInputModal.value.trim() || 'gemini-1.5-flash-latest');
+                localStorage.setItem('selectedModelForJournal', dom.modelInputModal.value.trim() || 'gemini-2.5-flash-lite');
                 localStorage.setItem('userNicknameForJournal', dom.nicknameInputModal.value.trim());
                 closeModal(dom.settingsModal);
                 showNotification(t['notification.settings_saved'], 'success');

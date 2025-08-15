@@ -233,6 +233,8 @@
             <div class="p-4 sm:p-6 flex-shrink-0 bg-amber-50 border-b theme-border">
                 <p class="text-sm theme-text-light" data-i18n="memory_dashboard.description">溫老師跟人一樣，會努力記住我們聊過的事。對於越久遠的事情，他會記得一個大概的輪廓（長期記憶）；對於近期發生的事，則會有比較清晰的印象（中期與近期記憶）。您也可以在下方手動為他補充重要的記憶點。</p>
             </div>
+<div id="memory-usage-container" class="p-4 sm:p-6 border-b theme-border">
+                </div>
             <div id="memory-display-area" class="flex-grow p-4 sm:p-6 space-y-4 overflow-y-auto">
                 <!-- Memories will be dynamically inserted here -->
             </div>
@@ -1229,15 +1231,14 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
 
             // ==================== Data Import/Export ====================
             function handleExportData() {
-                 
                 const dataToExport = {
                     journalEntries: getFromStorage('mood_journal_entries'),
                     journalSummaries: getFromStorage('journal_summaries'),
                     metaSummaries: getFromStorage('meta_summaries'),
-                    conversationSummaries: getFromStorage(`conversation_summaries_${PSYCHOLOGIST_ID}`)
+                    conversationSummaries: getFromStorage(`conversation_summaries_${PSYCHOLOGIST_ID}`),
+                    memoryWarehouse: getFromStorage('memory_warehouse') // [新增] 匯出記憶倉庫
                 };
-
-                if (dataToExport.journalEntries.length === 0) {
+                if (dataToExport.journalEntries.length === 0 && dataToExport.journalSummaries.length === 0 && dataToExport.metaSummaries.length === 0) { // [修改] 更新檢查條件
                     showNotification(t['notification.export_failed'], 'error');
                     return;
                 }
@@ -1268,6 +1269,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
                             saveToStorage('journal_summaries', importedData.journalSummaries || []);
                             saveToStorage('meta_summaries', importedData.metaSummaries || []);
                             saveToStorage(`conversation_summaries_${PSYCHOLOGIST_ID}`, importedData.conversationSummaries || []);
+                            saveToStorage('memory_warehouse', importedData.memoryWarehouse || []); // [新增] 匯入記憶倉庫
                             const count = importedData.journalEntries.length;
                             showNotification(i18nData['zh-TW']['notification.import_success'].replace('{count}', count), 'success');
                         } else {
@@ -1360,6 +1362,16 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
                     };
                     metaSummaries.push(newMetaSummary);
                     saveToStorage('meta_summaries', metaSummaries);
+
+                    // [新增] 封存已處理的摘要到倉庫
+                    const warehouse = getFromStorage('memory_warehouse');
+                    const processedIds = new Set(summariesToProcess.map(s => s.id));
+                    const remainingJournalSummaries = journalSummaries.filter(s => !processedIds.has(s.id));
+                    
+                    warehouse.push(...summariesToProcess);
+                    
+                    saveToStorage('memory_warehouse', warehouse);
+                    saveToStorage('journal_summaries', remainingJournalSummaries);
                 }
             }
 
@@ -1496,32 +1508,99 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
 
             // ==================== Memory Dashboard Logic ====================
             function openMemoryDashboard() {
-                 
                 dom.memoryDisplayArea.innerHTML = '';
-
                 const metaSummaries = getFromStorage('meta_summaries').map(s => ({ ...s, type: 'meta' }));
                 const journalSummaries = getFromStorage('journal_summaries').map(s => ({ ...s, type: s.type || 'journal_summary' }));
                 const conversationSummaries = getFromStorage(`conversation_summaries_${PSYCHOLOGIST_ID}`).map(s => ({ ...s, type: 'conversation' }));
+                const warehouseMemories = getFromStorage('memory_warehouse');
 
-                const allMemories = [...metaSummaries, ...journalSummaries, ...conversationSummaries];
-                
+                // [新增] 計算記憶體分配
+                const activeMemoryCount = metaSummaries.length + journalSummaries.length + conversationSummaries.length;
+                const archivedMemoryCount = warehouseMemories.length;
+                const totalMemoryCount = activeMemoryCount + archivedMemoryCount;
+                const memoryUsageContainer = document.getElementById('memory-usage-container');
+
+                if (totalMemoryCount > 0) {
+                    const activePercent = totalMemoryCount > 0 ? (activeMemoryCount / totalMemoryCount) * 100 : 0;
+                    
+                    memoryUsageContainer.innerHTML = `
+                        <h3 class="text-sm font-medium mb-2 theme-text">記憶體分配 (活躍 / 封存)</h3>
+                        <div class="w-full bg-gray-300 rounded-full h-4 flex overflow-hidden border border-gray-400">
+                            <div class="bg-gradient-to-r from-green-400 to-blue-500 h-full" style="width: ${activePercent}%;" title="活躍記憶: ${activeMemoryCount} 筆"></div>
+                        </div>
+                        <div class="flex justify-between text-xs mt-1.5 theme-text-light">
+                            <span><b>活躍記憶 (影響上下文): ${activeMemoryCount} 筆</b></span>
+                            <span>封存記憶: ${archivedMemoryCount} 筆</span>
+                        </div>
+                    `;
+                } else {
+                    memoryUsageContainer.innerHTML = ''; // 如果沒有記憶，則清空容器
+                }
+
+
+                const allMemories = [...metaSummaries, ...journalSummaries, ...conversationSummaries, ...warehouseMemories];
+
                 if (allMemories.length === 0) {
                     dom.memoryDisplayArea.innerHTML = `<p class="text-center theme-text-light py-12">${t['memory_dashboard.empty']}</p>`;
+                    // [修改] 清理點擊事件監聽器
+                    dom.memoryDisplayArea.onclick = null;
                     return;
                 }
 
                 allMemories.sort((a, b) => new Date(b.timestamp || b.endDate || b.startTime) - new Date(a.timestamp || a.endDate || a.startTime));
-
                 allMemories.forEach(memory => {
                     const card = createMemoryCard(memory);
                     dom.memoryDisplayArea.appendChild(card);
                 });
+                
+                dom.memoryDisplayArea.onclick = function(event) {
+                    const button = event.target.closest('.delete-memory-btn');
+                    if (button) {
+                        const memoryId = button.dataset.id;
+                        const memoryType = button.dataset.type;
+                        handleDeleteMemory(memoryId, memoryType);
+                    }
+                };
             }
+function handleDeleteMemory(memoryId, memoryType) {
+                const storageKeys = {
+                    meta: 'meta_summaries',
+                    journal_summary: 'journal_summaries',
+                    conversation: `conversation_summaries_${PSYCHOLOGIST_ID}`,
+                    user_reminder: 'journal_summaries'
+                };
+                const key = storageKeys[memoryType];
+                let wasDeleted = false;
 
+                if (key) {
+                    let memories = getFromStorage(key);
+                    const initialLength = memories.length;
+                    memories = memories.filter(m => m.id !== memoryId);
+                    if (memories.length < initialLength) {
+                        saveToStorage(key, memories);
+                        wasDeleted = true;
+                    }
+                }
+                
+                // 如果在主要區域找不到，就去倉庫找
+                if (!wasDeleted) {
+                    let warehouse = getFromStorage('memory_warehouse');
+                    const initialLength = warehouse.length;
+                    warehouse = warehouse.filter(m => m.id !== memoryId);
+                    if (warehouse.length < initialLength) {
+                        saveToStorage('memory_warehouse', warehouse);
+                        wasDeleted = true;
+                    }
+                }
+
+                if (wasDeleted) {
+                    showNotification('記憶已刪除。', 'info');
+                    openMemoryDashboard(); // 重新整理儀表板
+                }
+            }
             function createMemoryCard(memory) {
-                 
                 const card = document.createElement('div');
-                card.className = 'theme-bg-input rounded-xl p-4 shadow-sm border theme-border';
+                card.className = 'theme-bg-input rounded-xl p-4 shadow-sm border theme-border relative'; // [修改] 新增 relative class
 
                 const memoryTypes = {
                     meta: { label: t['memory_dashboard.tag.meta'], color: 'bg-red-200 text-red-800', icon: 'ph-crown-simple' },
@@ -1529,7 +1608,6 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
                     conversation: { label: t['memory_dashboard.tag.conversation'], color: 'bg-green-200 text-green-800', icon: 'ph-chats' },
                     user_reminder: { label: t['memory_dashboard.tag.reminder'], color: 'bg-blue-200 text-blue-800', icon: 'ph-user-sound' }
                 };
-                
                 const typeInfo = memoryTypes[memory.type] || memoryTypes.journal_summary;
                 
                 let dateText = '';
@@ -1540,14 +1618,19 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
                 }
 
                 card.innerHTML = `
-                    <div class="flex justify-between items-center mb-2">
+                    <div class="flex justify-between items-start mb-2">
                         <span class="text-xs font-bold px-2 py-1 rounded-full ${typeInfo.color} flex items-center gap-1">
                             <i class="ph-fill ${typeInfo.icon}"></i>
                             ${typeInfo.label}
                         </span>
-                        <span class="text-xs theme-text-light">${dateText}</span>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs theme-text-light">${dateText}</span>
+                            <button class="delete-memory-btn text-slate-400 hover:text-red-500" data-id="${memory.id}" data-type="${memory.type}" title="刪除此記憶">
+                                <i class="ph-bold ph-trash text-lg"></i>
+                            </button>
+                        </div>
                     </div>
-                    <p class="text-base theme-text-light leading-relaxed">${memory.content}</p>
+                    <p class="text-base theme-text-light leading-relaxed pr-8">${memory.content}</p> 
                 `;
                 return card;
             }
@@ -1790,6 +1873,7 @@ document.getElementById('language-switcher').addEventListener('click', (e) => {
     </script>
 </body>
 </html>
+
 
 
 

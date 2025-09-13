@@ -429,7 +429,7 @@
                      <input type="text" id="nickname-input-modal" class="w-full theme-bg-input theme-border theme-text rounded-lg focus:ring-2 theme-ring-focus focus:border-transparent block p-3" data-i18n-placeholder="settings.nickname_placeholder">
                  </div>
 
-                 <!-- <div>
+                 <div>
                      <label for="model-input-modal" class="block mb-2 text-sm font-medium" data-i18n="settings.model_select">AI 模型名稱</label>
                      <input type="text" id="model-input-modal" class="w-full theme-bg-input theme-border theme-text rounded-lg focus:ring-2 theme-ring-focus focus:border-transparent block p-3" data-i18n-placeholder="settings.model_placeholder">
                  </div>
@@ -437,7 +437,7 @@
                      <label for="gemini-api-key" class="block mb-2 text-sm font-medium text-yellow-700" data-i18n="settings.api_key_label">您的 Google Gemini API 金鑰</label>
                      <input type="password" id="gemini-api-key" class="w-full theme-bg-input theme-border theme-text rounded-lg focus:ring-2 theme-ring-focus focus:border-transparent block p-3" data-i18n-placeholder="settings.api_key_placeholder">
                      <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-xs text-blue-600 hover:text-blue-500 mt-2 inline-block" data-i18n="settings.get_api_key">點此免費獲取金鑰 ↗</a>
-                 </div>-->
+                 </div>
                  <hr class="theme-border"/>
                  <div>
                     <h3 class="text-lg font-bold mb-3" data-i18n="settings.data_management">資料管理</h3>
@@ -843,7 +843,7 @@ if (USE_BUILT_IN_AI) {
         initializeBuiltInAI();
     }
     const savedApiKey = localStorage.getItem('geminiApiKeyForJournal');
-    const savedModel = localStorage.getItem('selectedModelForJournal') || 'gemini-2.5-flash-lite';
+    const savedModel = localStorage.getItem('selectedModelForJournal') ||  'gemini-2.5-flash-lite';
     const savedNickname = localStorage.getItem('userNicknameForJournal') || '';
 
     if (savedApiKey) dom.geminiApiKey.value = savedApiKey;
@@ -1825,9 +1825,7 @@ async function callGeminiApi(prompt, expectJson = false) {
     } else {
         // --- 使用雲端 AI 的路徑 (原始程式碼) ---
         const apiKey = localStorage.getItem('geminiApiKeyForJournal');
-        const model = localStorage.getItem('selectedModelForJournal') |
-
-| 'gemini-2.5-flash-lite';
+        const model = localStorage.getItem('selectedModelForJournal') || 'gemini-2.5-flash-lite';
         if (!apiKey) {
              showNotification(t['notification.no_api_key'], 'error');
              openModal(dom.settingsModal);
@@ -1845,8 +1843,7 @@ async function callGeminiApi(prompt, expectJson = false) {
             };
         }
 
-        payload.safetySettings =;
-        if (expectJson) {
+               if (expectJson) {
             payload.generationConfig = {
                 "response_mime_type": "application/json",
             };
@@ -1860,16 +1857,14 @@ async function callGeminiApi(prompt, expectJson = false) {
 
         if (!response.ok) {
             const errorData = await response.json();
-            throw new Error(errorData.error?.message |
-
-| `Request failed, status: ${response.status}`);
+            throw new Error(errorData.error?.message || `Request failed, status: ${response.status}`);
         }
 
         const data = await response.json();
         if (data.candidates && data.candidates.content && data.candidates.content.parts.length > 0) {
             return data.candidates.content.parts.text.trim();
         } else {
-            const finishReason = data.candidates?.?.finishReason;
+            const finishReason = data.candidates?.[0]?.finishReason; 
             if (finishReason === 'SAFETY') throw new Error('內容因安全設定被阻擋。');
             throw new Error(finishReason? `生成中止: ${finishReason}` : 'API 回應中沒有有效內容。');
         }
@@ -1949,7 +1944,6 @@ async function callGeminiApi(prompt, expectJson = false) {
     </script>
 </body>
 </html>
-
 
 
 

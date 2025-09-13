@@ -1,0 +1,1956 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="meta.title">AI 心理筆記</title>
+    <meta name="description" data-i18n="meta.description" content="一個以您為中心的私密空間，書寫心情、回顧足跡，並在需要時與溫暖的 AI 心理師對話。">
+    <meta name="keywords" content="心理健康, 心情日記, AI心理師, 自我關懷, 呼吸練習, Mental Health, Mood Journal, AI Therapist">
+        <link rel="manifest" href="/manifest.json">
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- 引入 Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        :root {
+            --primary-color: #a0522d; /* Sienna - 暖棕色 */
+            --primary-color-hover: #8b4513; /* SaddleBrown */
+            --secondary-color: #c9a988; /* 柔和的棕褐色 */
+            --text-color: #3d2b1f; /* Dark Brown */
+            --text-light-color: #6b4f3a;
+            --bg-color: #f5f5dc; /* Beige - 米色背景 */
+            --card-bg-color: #fffaf0; /* FloralWhite - 卡片背景 */
+            --input-bg-color: #fdf5e6; /* OldLace - 輸入框背景 */
+            --border-color: #dcd0b8;
+        }
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+        /* 主題色系應用 */
+        .theme-primary { color: var(--primary-color); }
+        .theme-bg-primary { background-color: var(--primary-color); }
+        .theme-bg-primary-hover:hover:not(:disabled) { background-color: var(--primary-color-hover); }
+        .theme-text { color: var(--text-color); }
+        .theme-text-light { color: var(--text-light-color); }
+        .theme-bg-card { background-color: var(--card-bg-color); }
+        .theme-bg-input { background-color: var(--input-bg-color); }
+        .theme-border { border-color: var(--border-color); }
+        .theme-ring-focus:focus { --tw-ring-color: var(--primary-color); }
+        /* Modal 動畫 */
+        .modal { transition: opacity 0.3s ease-in-out; }
+        .modal-content { transition: transform 0.3s ease-in-out; }
+        /* 讀取中 Spinner */
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .spinner { animation: spin 0.8s linear infinite; border-top-color: var(--primary-color); }
+        /* 提示訊息 */
+        #notification-container {
+            position: fixed; top: 1.25rem; left: 50%;
+            transform: translateX(-50%); z-index: 250;
+            width: 90%; max-width: 24rem;
+            display: flex; flex-direction: column; gap: 0.75rem; align-items: center;
+        }
+        .notification {
+            width: 100%; text-align: center;
+            padding: 0.75rem 1.5rem; border-radius: 9999px;
+            color: white; font-weight: 700;
+            opacity: 0; transform: translateY(-20px);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        /* 聊天泡泡 */
+        .chat-bubble-container { display: flex; align-items: flex-end; gap: 0.5rem; max-width: 90%; }
+        .chat-bubble { max-width: 100%; word-wrap: break-word; line-height: 1.6; }
+        .chat-bubble-user { background-color: var(--secondary-color); }
+        .chat-bubble-assistant { background-color: var(--primary-color); }
+        .chat-timestamp { font-size: 0.7rem; color: var(--text-light-color); flex-shrink: 0; }
+        /* 卡片懸浮效果 */
+        .card-hover-effect:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(160, 82, 45, 0.1), 0 4px 6px -2px rgba(160, 82, 45, 0.08);
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+        }
+        /* 呼吸練習動畫 */
+        @keyframes pulse-breathe {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+        .breathing-circle {
+            animation: pulse-breathe 8s ease-in-out infinite;
+        }
+        /* 心情儀表板橫條 */
+        .mood-bar-bg {
+            background-color: #e5e7eb; /* gray-200 */
+            border-radius: 9999px;
+            height: 1.25rem; /* h-5 */
+            overflow: hidden;
+            width: 100%;
+        }
+        .mood-bar-visual {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 1s ease-out, background-color 1s ease-out;
+            background-image: linear-gradient(to right, #60a5fa, #34d399, #facc15, #f97316);
+        }
+        /* 通用 Modal 內容樣式 */
+        .modal-prose h3 {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-top: 1.5rem; /* mt-6 */
+            margin-bottom: 0.75rem; /* mb-3 */
+            padding-bottom: 0.5rem; /* pb-2 */
+            border-bottom: 1px solid var(--border-color);
+        }
+        .modal-prose p, .modal-prose ul, .modal-prose ol {
+            margin-bottom: 1rem; /* mb-4 */
+            line-height: 1.75; /* leading-relaxed */
+        }
+        .modal-prose ul, .modal-prose ol {
+            padding-left: 1.5rem; /* pl-6 */
+        }
+        .modal-prose ul { list-style-type: disc; }
+        .modal-prose ol { list-style-type: decimal; }
+        .modal-prose li { margin-bottom: 0.75rem; /* mb-3 */ }
+        .modal-prose i.ph-bold { vertical-align: -0.125em; }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-start min-h-screen p-4 pt-8 sm:pt-12 pb-32">
+
+    <!-- === 主內容區域 === -->
+    <main class="w-full max-w-3xl mx-auto flex flex-col gap-8">
+
+        <!-- Header -->
+        <header class="w-full theme-bg-card rounded-2xl shadow-lg p-4 sm:p-6 relative">
+            <div class="absolute top-4 left-4 sm:left-6">
+                <button data-modal-target="other-apps-modal" class="text-xs sm:text-sm theme-text-light hover:theme-text transition-colors flex items-center gap-1" data-i18n="header.other_apps">
+                    <i class="ph-bold ph-app-window"></i>
+                    <span>作者開發的其他應用</span>
+                </button>
+            </div>
+            <div class="absolute top-4 right-4 flex items-center gap-3 sm:gap-4">
+    <div id="language-switcher" class="text-sm font-bold theme-text-light border theme-border rounded-full p-0.5 flex items-center gap-1">
+        <button data-lang="zh-TW" class="lang-btn px-2 py-0.5 rounded-full">中</button>
+        <button data-lang="en" class="lang-btn px-2 py-0.5 rounded-full">EN</button>
+        <button data-lang="ja" class="lang-btn px-2 py-0.5 rounded-full">日</button>
+    </div>
+    <a href="https://buymeacoffee.com/arvincreator" target="_blank" rel="noopener noreferrer" class="theme-text-light hover:theme-text transition-colors" data-i18n-title="header.sponsor">
+        <i class="ph-bold ph-coffee text-xl"></i>
+    </a>
+    <button data-modal-target="info-modal" class="theme-text-light hover:theme-text transition-colors" data-i18n-title="header.info">
+        <i class="ph-bold ph-info text-xl"></i>
+    </button>
+    <button id="open-settings-modal-btn" data-modal-target="settings-modal" class="theme-text-light hover:theme-text transition-colors" data-i18n-title="header.settings">
+        <i class="ph-bold ph-gear text-xl"></i>
+    </button>
+</div>
+            <div class="text-center pt-12 sm:pt-8">
+                <i class="ph-duotone ph-leaf text-5xl sm:text-6xl theme-primary"></i>
+                <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black theme-text mt-4 mb-2" data-i18n="title">AI 心理筆記</h1>
+                <p class="theme-text-light text-sm mb-2" data-i18n="subtitle">一個懂你、傾聽你的私密心靈空間</p>
+            </div>
+        </header>
+
+        <!-- 安心提醒 -->
+        <section class="w-full bg-yellow-100 border-l-4 border-yellow-500 text-yellow-800 p-4 rounded-r-lg">
+            <h3 class="font-bold flex items-center gap-2"><i class="ph-fill ph-shield-warning"></i><span data-i18n="reminder.title">安心提醒</span></h3>
+            <p class="text-sm mt-1" data-i18n="reminder.content">我是一位 AI 心理師，能提供支持與引導，但無法取代專業醫療診斷。若您感到非常痛苦，請務必尋求<a href="#resources" class="font-bold underline hover:text-yellow-900" data-i18n="reminder.link">專業協助</a>。</p>
+        </section>
+
+        <!-- 心情雜記輸入 -->
+        <section class="w-full theme-bg-card rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-pencil-line theme-primary"></i> <span id="personalized-journal-title" data-i18n="journal.title">寫下今天的心情</span></h2>
+            <form id="journal-form" class="space-y-5">
+                <div>
+                    <label for="journal-content" class="sr-only" data-i18n="journal.label">雜記內容</label>
+                    <textarea id="journal-content" rows="6" class="w-full theme-bg-input theme-border theme-text rounded-lg focus:ring-2 theme-ring-focus focus:border-transparent block p-4 text-base" data-i18n-placeholder="journal.placeholder" required></textarea>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    <button id="open-history-modal-btn" type="button" class="w-full bg-white border theme-border hover:bg-gray-50 text-gray-700 font-bold text-lg py-3 px-4 rounded-lg shadow-md flex items-center justify-center gap-2 transition-transform active:scale-95">
+                        <i class="ph-fill ph-book-open"></i>
+                        <span data-i18n="journal.history_button">回顧心情足跡</span>
+                    </button>
+                    <button id="save-journal-btn" type="submit" class="w-full theme-bg-primary theme-bg-primary-hover text-white font-bold text-lg py-3 px-4 rounded-lg shadow-lg flex items-center justify-center gap-2 transition-transform active:scale-95">
+                        <i class="ph-fill ph-check-circle"></i>
+                        <span data-i18n="journal.save_button">儲存今日雜記</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- 智慧分析工具 -->
+        <section class="w-full theme-bg-card rounded-2xl shadow-lg p-4 sm:p-6 md:p-8">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="ph-fill ph-magic-wand theme-primary"></i> <span data-i18n="analysis.title">智慧分析工具</span></h2>
+            <div class="grid grid-cols-1 gap-4">
+                <button id="open-mood-dashboard-btn" class="w-full bg-white border theme-border hover:bg-gray-50 text-gray-700 font-bold text-lg py-3 px-4 rounded-lg shadow-md flex items-center justify-center gap-2 transition-transform active:scale-95">
+                    <i class="ph-fill ph-chart-line-up"></i>
+                    <span data-i18n="analysis.mood_dashboard_button">生成近七日心情報告</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- AI 心理師 -->
+        <section id="psychologist-section" class="w-full">
+            <div class="flex justify-between items-center mb-4">
+                 <h2 class="text-xl font-bold flex items-center gap-2"><i class="ph-fill ph-user-focus theme-primary"></i> <span data-i18n="psychologist.title">AI 心理師</span></h2>
+                 <!-- [新增] 記憶儀表板按鈕 -->
+                 <button data-modal-target="memory-dashboard-modal" class="text-sm theme-text-light hover:theme-text transition-colors flex items-center gap-1" data-i18n="psychologist.memory_button">
+                     <i class="ph-bold ph-brain"></i>
+                     <span>溫老師對你的了解</span>
+                 </button>
+            </div>
+            <div id="psychologist-card-container"></div>
+        </section>
+
+    </main>
+
+    <footer id="resources" class="text-center text-xs theme-text-light mt-12 w-full max-w-3xl mx-auto p-6 theme-bg-card rounded-2xl">
+        <h3 class="font-bold text-base mb-2" data-i18n="resources.title">專業心理協助資源</h3>
+        <p class="mb-4" data-i18n="resources.description">若您需要即時的專業協助，請隨時利用以下資源：</p>
+        <div class="flex justify-center gap-4 sm:gap-8 flex-wrap">
+            <a href="https://www.mohw.gov.tw/cp-16-77855-1.html" target="_blank" rel="noopener noreferrer" class="font-semibold hover:theme-primary" data-i18n="resources.line1">衛福部安心專線：1925</a>
+            <a href="https://www.life1995.org.tw/" target="_blank" rel="noopener noreferrer" class="font-semibold hover:theme-primary" data-i18n="resources.line2">生命線專線：1995</a>
+            <a href="https://www.cyc.org.tw/mp.asp?mp=1" target="_blank" rel="noopener noreferrer" class="font-semibold hover:theme-primary" data-i18n="resources.line3">張老師專線：1980</a>
+        </div>
+        <p class="mt-8 text-slate-500" data-i18n="footer.copyright">© 2025 AI 心理筆記. All Rights Reserved.</p>
+    </footer>
+
+
+    <!-- ==================== Modals ==================== -->
+
+    <!-- [新增] 記憶儀表板 Modal -->
+    <div id="memory-dashboard-modal" class="modal hidden fixed inset-0 z-[95] flex items-center justify-center p-4 bg-black bg-opacity-70">
+        <div class="modal-content theme-bg-card rounded-2xl shadow-xl w-full max-w-3xl flex flex-col max-h-[90vh] transform scale-95">
+            <div class="flex justify-between items-center p-4 sm:p-6 border-b theme-border flex-shrink-0">
+                <h2 class="text-lg font-bold theme-text flex items-center gap-2"><i class="ph-fill ph-brain theme-primary"></i> <span data-i18n="memory_dashboard.title">溫老師對你的了解</span></h2>
+                <button class="modal-close text-slate-400 hover:theme-text"><i class="ph-bold ph-x text-2xl"></i></button>
+            </div>
+            <div class="p-4 sm:p-6 flex-shrink-0 bg-amber-50 border-b theme-border">
+                <p class="text-sm theme-text-light" data-i18n="memory_dashboard.description">溫老師跟人一樣，會努力記住我們聊過的事。對於越久遠的事情，他會記得一個大概的輪廓（長期記憶）；對於近期發生的事，則會有比較清晰的印象（中期與近期記憶）。您也可以在下方手動為他補充重要的記憶點。</p>
+            </div>
+<div id="memory-usage-container" class="p-4 sm:p-6 border-b theme-border">
+                </div>
+            <div id="memory-display-area" class="flex-grow p-4 sm:p-6 space-y-4 overflow-y-auto">
+                <!-- Memories will be dynamically inserted here -->
+            </div>
+            <div class="p-4 sm:p-6 border-t theme-border flex-shrink-0">
+                <form id="memory-reminder-form" class="space-y-3">
+                    <label for="memory-reminder-input" class="text-sm font-medium" data-i18n="memory_dashboard.input_label">為溫老師補充記憶提醒：</label>
+                    <textarea id="memory-reminder-input" rows="3" class="w-full theme-bg-input theme-border theme-text rounded-lg focus:ring-2 theme-ring-focus focus:border-transparent block p-3 text-base" data-i18n-placeholder="memory_dashboard.input_placeholder"></textarea>
+                    <button type="submit" class="w-full theme-bg-primary theme-bg-primary-hover text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2">
+                        <i class="ph-fill ph-plus-circle"></i> <span data-i18n="memory_dashboard.save_button">儲存提醒</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 作者其他應用 Modal -->
+    <div id="other-apps-modal" class="modal hidden fixed inset-0 z-[85] flex items-center justify-center p-4 bg-black bg-opacity-70">
+        <div class="modal-content theme-bg-card rounded-2xl shadow-xl w-full max-w-2xl p-6 sm:p-8 transform scale-95 flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                <h2 class="text-2xl font-bold theme-text" data-i18n="other_apps.title">@Arvin Chen 開發 Web App 一覽</h2>
+                <button class="modal-close text-slate-400 hover:theme-text"><i class="ph-bold ph-x text-2xl"></i></button>
+            </div>
+            <div class="flex-grow overflow-y-auto pt-2 pr-4 modal-prose">
+                <style>
+                    .app-list h3 { margin-top: 1.5rem; display: flex; align-items: center; gap: 0.75rem; font-size: 1.1rem; }
+                    .app-list ol { padding-left: 1rem; list-style: none; }
+                    .app-list li { margin-bottom: 0.85rem; }
+                    .app-list a { font-weight: 500; text-decoration: none; color: var(--text-color); }
+                    .app-list a:hover { text-decoration: underline; color: var(--primary-color); }
+                    .app-list .link-icon { color: var(--text-light-color); font-size: 0.9em; vertical-align: middle; margin-left: 4px; transition: color 0.2s; }
+                    .app-list a:hover .link-icon { color: var(--primary-color); }
+                </style>
+                <div class="app-list">
+                    <h3><i class="ph-bold ph-translate theme-primary"></i> 語言學習系列</h3>
+                    <ol>
+                        <li><a href="https://ai-english-exercises.pages.dev" target="_blank" rel="noopener noreferrer">1. AI 英語練習器 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                        <li><a href="https://ai-nihongo-exercise.pages.dev" target="_blank" rel="noopener noreferrer">2. AI 日語練習器 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                        <li><a href="https://ai-english-exercises.pages.dev" target="_blank" rel="noopener noreferrer">3. AI 中文練習器（給外國人） <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                    </ol>
+            
+                    <h3><i class="ph-bold ph-books theme-primary"></i> 創作＆內容生成工具 (🌟共用會員)</h3>
+                    <ol>
+                        <li><a href="https://serial-novel-generator.pages.dev" target="_blank" rel="noopener noreferrer">1. 🌟 連載小說產生器 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                        <li><a href="https://ai-prompt-generator-108.pages.dev" target="_blank" rel="noopener noreferrer">2. 🌟 AI 不偷懶提示詞生成器 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                        <li><a href="https://meme-reply-generator.pages.dev" target="_blank" rel="noopener noreferrer">3. 🌟 網路回梗生成器 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                    </ol>
+            
+                    <h3><i class="ph-bold ph-game-controller theme-primary"></i> 遊戲類 (🌟部分共用會員)</h3>
+                    <ol>
+                        <li><a href="https://ai-war-tactics.pages.dev" target="_blank" rel="noopener noreferrer">1. AI 戰棋策略遊戲 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                        <li><a href="https://text-rpg-generator.pages.dev" target="_blank" rel="noopener noreferrer">2. 🌟 文字冒險遊戲 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                    </ol>
+            
+                    <h3><i class="ph-bold ph-globe-hemisphere-west theme-primary"></i> 助理型工具 (🌟共用會員)</h3>
+                    <ol>
+                        <li><a href="https://ai-travel-guide.pages.dev" target="_blank" rel="noopener noreferrer">1. 🌟 AI 旅遊導覽員 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                        <li><a href="https://ai-trip-planner.pages.dev" target="_blank" rel="noopener noreferrer">2. 🌟 AI 海外旅遊規劃神器 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                        <li><a href="https://your-ai-chatbot.pages.dev" target="_blank" rel="noopener noreferrer">3. 🌟 你的 AI 親友情人聊天器 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                        <li><a href="https://serene-journal-ai.pages.dev" target="_blank" rel="noopener noreferrer">4. AI 心理筆記 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                    </ol>
+            
+                    <h3><i class="ph-bold ph-timer theme-primary"></i>  生產力工具</h3>
+                    <ol>
+                        <li><a href="https://banter-pomodoro.pages.dev" target="_blank" rel="noopener noreferrer">1. 碎嘴蕃茄鐘 <i class="ph-bold ph-arrow-square-out link-icon"></i></a></li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 贊助提示 Modal -->
+    <div id="sponsorship-modal" class="modal hidden fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black bg-opacity-70">
+        <div class="modal-content theme-bg-card rounded-2xl shadow-xl w-full max-w-md p-6 sm:p-8 transform scale-95 text-center">
+            <i class="ph-duotone ph-coffee text-5xl theme-primary mb-4"></i>
+            <h2 class="text-xl font-bold theme-text mb-3" data-i18n="sponsor.title">這工具對你有幫助嗎？</h2>
+            <p class="theme-text-light mb-6" data-i18n="sponsor.message">給開發者一個支持！小額贊助他吧！金額隨喜！讓他有動力開發更好的工具。</p>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <button id="sponsor-decline-btn" class="w-full flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-3 px-4 rounded-lg" data-i18n="sponsor.decline_button">我不想支持</button>
+                <button id="sponsor-confirm-btn" class="w-full flex-1 theme-bg-primary theme-bg-primary-hover text-white font-bold py-3 px-4 rounded-lg" data-i18n="sponsor.confirm_button">立即前往支持</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 心情儀表板 Modal -->
+    <div id="mood-dashboard-modal" class="modal hidden fixed inset-0 z-[90] flex items-center justify-center p-4 bg-black bg-opacity-70">
+        <div class="modal-content theme-bg-card rounded-2xl shadow-xl w-full max-w-2xl p-6 sm:p-8 transform scale-95 flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                <h2 class="text-2xl font-bold theme-text" data-i18n="dashboard.title">近七日心情報告</h2>
+                <button class="modal-close text-slate-400 hover:theme-text"><i class="ph-bold ph-x text-2xl"></i></button>
+            </div>
+            <div id="mood-dashboard-content" class="flex-grow overflow-y-auto pr-4"></div>
+        </div>
+    </div>
+
+    <!-- 網站資訊 Modal -->
+    <div id="info-modal" class="modal hidden fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black bg-opacity-70">
+        <div class="modal-content theme-bg-card rounded-2xl shadow-xl w-full max-w-2xl p-6 sm:p-8 transform scale-95 flex flex-col max-h-[90vh]">
+            <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                <h2 class="text-2xl font-bold theme-text" data-i18n="info.title">網站資訊</h2>
+                <button class="modal-close text-slate-400 hover:theme-text"><i class="ph-bold ph-x text-2xl"></i></button>
+            </div>
+            <div class="border-b theme-border flex-shrink-0">
+                <nav id="info-tabs" class="-mb-px flex space-x-4 sm:space-x-6 overflow-x-auto">
+                    <button data-tab="about" class="info-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm theme-primary border-current" data-i18n="info.tab.about">關於網站</button>
+                    <button data-tab="usage" class="info-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent theme-text-light hover:theme-text hover:border-gray-400" data-i18n="info.tab.usage">使用說明</button>
+                    <button data-tab="privacy" class="info-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent theme-text-light hover:theme-text hover:border-gray-400" data-i18n="info.tab.privacy">隱私權政策</button>
+                    <button data-tab="terms" class="info-tab-btn whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm border-transparent theme-text-light hover:theme-text hover:border-gray-400" data-i18n="info.tab.terms">版權與免責</button>
+                </nav>
+            </div>
+            <div class="flex-grow overflow-y-auto pt-5 pr-4 modal-prose">
+                <div id="tab-content-about" class="info-tab-content"></div>
+                <div id="tab-content-usage" class="info-tab-content hidden"></div>
+                <div id="tab-content-privacy" class="info-tab-content hidden"></div>
+                <div id="tab-content-terms" class="info-tab-content hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 雜記歷史 Modal -->
+    <div id="history-modal" class="modal hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-70">
+        <div class="modal-content theme-bg-card rounded-2xl shadow-xl w-full max-w-3xl flex flex-col max-h-[90vh] transform scale-95">
+            <div class="flex justify-between items-center p-4 border-b theme-border flex-shrink-0">
+                <h2 class="text-lg font-bold theme-text flex items-center gap-2"><i class="ph-fill ph-book-open theme-primary"></i> <span data-i18n="history.title">我的心情足跡</span></h2>
+                <button class="modal-close text-slate-400 hover:theme-text"><i class="ph-bold ph-x text-2xl"></i></button>
+            </div>
+            <div class="p-4 flex-shrink-0 border-b theme-border">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div>
+                        <label for="start-date" class="text-sm font-medium" data-i18n="history.start_date">開始日期</label>
+                        <input type="date" id="start-date" class="w-full mt-1 theme-bg-input theme-border theme-text rounded-lg p-2">
+                    </div>
+                    <div>
+                        <label for="end-date" class="text-sm font-medium" data-i18n="history.end_date">結束日期</label>
+                        <input type="date" id="end-date" class="w-full mt-1 theme-bg-input theme-border theme-text rounded-lg p-2">
+                    </div>
+                    <button id="filter-journals-btn" class="w-full md:w-auto theme-bg-primary theme-bg-primary-hover text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2">
+                        <i class="ph-fill ph-funnel"></i> <span data-i18n="history.filter_button">篩選</span>
+                    </button>
+                </div>
+            </div>
+            <div id="journal-history-list" class="flex-grow p-4 space-y-4 overflow-y-auto"></div>
+            <p id="no-journals-message" class="text-center theme-text-light py-12 hidden" data-i18n="history.empty_message">這段期間沒有任何雜記喔！</p>
+        </div>
+    </div>
+
+    <!-- Chat Modal -->
+    <div id="chat-modal" class="modal hidden fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black bg-opacity-70">
+        <div class="modal-content theme-bg-card rounded-2xl shadow-xl w-full max-w-2xl flex flex-col max-h-[90vh] transform scale-95">
+            <div class="flex justify-between items-center p-4 border-b theme-border flex-shrink-0">
+                <h2 id="chat-modal-title" class="text-lg font-bold theme-text">與 的對話</h2>
+                <button id="end-chat-btn" class="text-xs bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 rounded-lg flex items-center gap-2">
+                    <i class="ph-bold ph-x-circle"></i>
+                    <span data-i18n="chat.end_chat_button">結束對話並儲存</span>
+                </button>
+            </div>
+            <div id="chat-log" class="flex-grow p-4 space-y-4 overflow-y-auto"></div>
+             <div id="chat-action-container" class="p-2 flex justify-center"></div>
+             <div id="breathing-exercise-container" class="hidden flex-col items-center justify-center p-8 gap-4 text-center">
+                <div class="breathing-circle w-32 h-32 bg-sky-300 rounded-full flex items-center justify-center">
+                    <span id="breathing-text" class="text-2xl font-bold text-white"></span>
+                </div>
+                <p id="breathing-instruction" class="text-lg theme-text-light"></p>
+                <button id="stop-breathing-btn" class="mt-4 text-sm text-slate-500 hover:text-slate-700" data-i18n="chat.stop_breathing">停止練習</button>
+            </div>
+            <div id="chat-loading-indicator" class="hidden items-center justify-center p-4">
+                <div class="flex items-center gap-2 theme-text-light">
+                    <div class="spinner w-5 h-5 border-2 rounded-full"></div>
+                    <span id="chat-loading-text" data-i18n="chat.typing">溫老師正在輸入中...</span>
+                </div>
+            </div>
+            <div class="p-4 border-t theme-border flex-shrink-0">
+                <form id="chat-form" class="flex items-center gap-3">
+                    <input type="text" id="chat-input" class="w-full theme-bg-input theme-border theme-text rounded-lg focus:ring-2 theme-ring-focus focus:border-transparent block p-3" data-i18n-placeholder="chat.input_placeholder" required>
+                    <button id="send-message-btn" type="submit" class="p-3 theme-bg-primary theme-bg-primary-hover text-white font-bold rounded-lg">
+                        <i class="ph-fill ph-paper-plane-tilt text-xl"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden fixed inset-0 z-[70] flex items-center justify-center p-4 bg-black bg-opacity-50">
+        <div class="modal-content theme-bg-card rounded-2xl shadow-xl w-full max-w-md p-6 sm:p-8 transform scale-95">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold theme-text flex items-center gap-2" data-i18n="settings.title"><i class="ph-fill ph-gear"></i> 設定</h2>
+                <button class="modal-close text-slate-400 hover:theme-text"><i class="ph-bold ph-x text-2xl"></i></button>
+            </div>
+            <div class="space-y-6">
+                <div>
+                     <label for="nickname-input-modal" class="block mb-2 text-sm font-medium" data-i18n="settings.nickname">你的暱稱</label>
+                     <input type="text" id="nickname-input-modal" class="w-full theme-bg-input theme-border theme-text rounded-lg focus:ring-2 theme-ring-focus focus:border-transparent block p-3" data-i18n-placeholder="settings.nickname_placeholder">
+                 </div>
+
+                 <!-- <div>
+                     <label for="model-input-modal" class="block mb-2 text-sm font-medium" data-i18n="settings.model_select">AI 模型名稱</label>
+                     <input type="text" id="model-input-modal" class="w-full theme-bg-input theme-border theme-text rounded-lg focus:ring-2 theme-ring-focus focus:border-transparent block p-3" data-i18n-placeholder="settings.model_placeholder">
+                 </div>
+                 <div>
+                     <label for="gemini-api-key" class="block mb-2 text-sm font-medium text-yellow-700" data-i18n="settings.api_key_label">您的 Google Gemini API 金鑰</label>
+                     <input type="password" id="gemini-api-key" class="w-full theme-bg-input theme-border theme-text rounded-lg focus:ring-2 theme-ring-focus focus:border-transparent block p-3" data-i18n-placeholder="settings.api_key_placeholder">
+                     <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-xs text-blue-600 hover:text-blue-500 mt-2 inline-block" data-i18n="settings.get_api_key">點此免費獲取金鑰 ↗</a>
+                 </div>-->
+                 <hr class="theme-border"/>
+                 <div>
+                    <h3 class="text-lg font-bold mb-3" data-i18n="settings.data_management">資料管理</h3>
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <button id="import-journals-btn" class="w-full flex-1 theme-bg-primary theme-bg-primary-hover text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2">
+                            <i class="ph-fill ph-upload-simple"></i><span data-i18n="settings.import_button">匯入雜記</span>
+                        </button>
+                        <input type="file" id="import-file-input" class="hidden" accept=".json">
+                        <button id="export-journals-btn" class="w-full flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2">
+                            <i class="ph-fill ph-download-simple"></i><span data-i18n="settings.export_button">匯出雜記</span>
+                        </button>
+                    </div>
+                 </div>
+                 <button id="save-settings-btn" class="w-full theme-bg-primary theme-bg-primary-hover text-white font-bold py-3 px-4 rounded-lg transition-colors" data-i18n="settings.save">儲存設定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notification-container"></div>
+
+
+    <script type="module">
+        document.addEventListener('DOMContentLoaded', () => {
+                    // PWA Service Worker Registration
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js').then(registration => {
+              console.log('Service Worker registered: ', registration);
+            }).catch(registrationError => {
+              console.log('Service Worker registration failed: ', registrationError);
+            });
+          });
+        }
+
+            // ==================== Global Config & State ====================
+            const PSYCHOLOGIST_ID = 'fixed_psychologist_01';
+            const SPONSOR_URL = 'https://buymeacoffee.com/arvincreator';
+
+const i18nLocales = {
+    'zh-TW': 'zh-TW',
+    'en': 'en-US',
+    'ja': 'ja-JP'
+};
+let currentLanguage;
+let t; // This will hold the translations for the current language
+
+            const META_SUMMARY_THRESHOLD = 5; // 每5個期間摘要，就濃縮成一個元摘要
+            let conversationHistory = [];
+            let breathingInterval = null;
+           const USE_BUILT_IN_AI = true;
+
+            // ==================== DOM Elements Cache ====================
+            const dom = {};
+            const elementIds = [
+                'open-settings-modal-btn',
+'nickname-input-modal',
+                'personalized-journal-title',
+                'journal-form', 'journal-content', 'save-journal-btn', 'open-history-modal-btn',
+                'psychologist-card-container',
+                'history-modal', 'start-date', 'end-date', 'filter-journals-btn', 'journal-history-list', 'no-journals-message',
+                'chat-modal', 'chat-modal-title', 'end-chat-btn', 'chat-log', 'chat-loading-indicator', 'chat-loading-text', 'chat-form', 'chat-input', 'send-message-btn',
+                'chat-action-container', 'breathing-exercise-container', 'breathing-circle', 'breathing-text', 'breathing-instruction', 'stop-breathing-btn',
+                'settings-modal', 'model-input-modal', 'gemini-api-key', 'save-settings-btn', 'import-journals-btn', 'export-journals-btn', 'import-file-input',
+                'notification-container',
+                'info-modal', 'info-tabs', 'tab-content-about', 'tab-content-usage', 'tab-content-privacy', 'tab-content-terms',
+                'open-mood-dashboard-btn', 'mood-dashboard-modal', 'mood-dashboard-content',
+                'sponsorship-modal', 'sponsor-confirm-btn', 'sponsor-decline-btn',
+                'other-apps-modal',
+                // [新增] 記憶儀表板相關
+                'memory-dashboard-modal', 'memory-display-area', 'memory-reminder-form', 'memory-reminder-input'
+            ];
+            elementIds.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    const camelCaseId = id.replace(/-([a-z])/g, g => g[1].toUpperCase());
+                    dom[camelCaseId] = element;
+                } else {
+                    console.warn(`DOM element with ID "${id}" was not found.`);
+                }
+            });
+
+            // ==================== i18n Language Data ====================
+            const i18nData = {
+    'zh-TW': {
+        'meta.title': 'AI 心理筆記',
+        'meta.description': '一個以您為中心的私密空間，書寫心情、回顧足跡，並在需要時與溫暖的 AI 心理師對話。',
+        'title': 'AI 心理筆記',
+        'subtitle': '一個懂你、傾聽你的私密心靈空間',
+        'header.sponsor': '贊助開發者',
+        'header.info': '網站資訊',
+        'header.settings': '設定',
+        'header.other_apps': '作者開發的其他應用',
+        'other_apps.title': '@Arvin Chen 開發 Web App 一覽',
+        'footer.copyright': '© 2025 AI 心理筆記. All Rights Reserved.',
+        'reminder.title': '安心提醒',
+        'reminder.content': '我是一位 AI 心理師，能提供支持與引導，但無法取代專業醫療診斷。若您感到非常痛苦，請務必尋求專業協助。',
+        'reminder.link': '專業協助',
+        'journal.title': '寫下今天的心情',
+        'journal.label': '雜記內容',
+        'journal.placeholder': '今天發生了什麼事？有什麼感覺或想法想記錄下來嗎？任何時候都可以記錄一下，無論是開心或難過，這裡都是安全的空間...',
+        'journal.save_button': '儲存今日雜記',
+        'journal.history_button': '回顧心情足跡',
+        'analysis.title': '智慧分析工具',
+        'analysis.mood_dashboard_button': '生成近七日心情報告',
+        'psychologist.title': 'AI 心理師',
+        'psychologist.name': '溫老師',
+        'psychologist.description': '一位受過專業訓練的 AI 心理師，專長是傾聽、同理，並引導您探索內心。',
+        'psychologist.chat_button': '開始對話',
+        'psychologist.memory_button': '溫老師對你的了解',
+        'history.title': '我的心情足跡',
+        'history.start_date': '開始日期',
+        'history.end_date': '結束日期',
+        'history.filter_button': '篩選',
+        'history.empty_message': '這段期間沒有任何雜記喔！',
+        'history.delete_button': '刪除此篇',
+        'chat.modal.title': '與 {nickname} 的對話',
+        'chat.end_chat_button': '結束對話並儲存',
+        'chat.typing': '{nickname} 正在思考中...',
+        'chat.summarizing': '{nickname} 正在回顧您的筆記...',
+        'chat.input_placeholder': '說說你的感受...',
+        'chat.start_breathing': '開始 4-7-8 呼吸練習',
+        'chat.stop_breathing': '停止練習',
+        'settings.title': '設定',
+        'settings.model_select': 'AI 模型名稱',
+        'settings.model_placeholder': '例如: gemini-2.5-flash-lite',
+        'settings.api_key_label': '您的 Google Gemini API 金鑰',
+        'settings.api_key_placeholder': '請在此貼上您的金鑰',
+        'settings.get_api_key': '點此免費獲取金鑰 ↗',
+        'settings.data_management': '資料管理',
+        'settings.import_button': '匯入雜記',
+        'settings.export_button': '匯出雜記',
+        'settings.save': '儲存設定',
+       'settings.nickname': '你的暱稱',
+        'settings.nickname_placeholder': '溫老師該怎麼稱呼你？',
+        'journal.title.personalized': '{nickname}，今天好嗎？來記錄一下發生了什麼事吧',
+        'resources.title': '專業心理協助資源',
+        'resources.description': '若您需要即時的專業協助，請隨時利用以下資源：',
+        'resources.line1': '衛福部安心專線：1925',
+        'resources.line2': '生命線專線：1995',
+        'resources.line3': '張老師專線：1980',
+        'notification.no_api_key': '請先在「設定」中輸入您的 Gemini API 金鑰！',
+        'notification.settings_saved': '設定已儲存！',
+        'notification.journal_saved': '雜記已成功儲存！',
+        'notification.journal_deleted': '雜記已刪除。',
+        'notification.journal_empty': '請先寫下一些內容再儲存喔！',
+        'notification.saving_summary': '正在儲存對話記憶，請稍候...',
+        'notification.summary_saved': '對話記憶已儲存！期待下次再聊。',
+        'notification.summary_failed': '記憶儲存失敗：',
+        'notification.generate_fail': '訊息傳送失敗：',
+        'notification.no_input': '請輸入你想說的話。',
+        'notification.export_success': '雜記已成功匯出！',
+        'notification.export_failed': '雜記匯出失敗，沒有可匯出的內容。',
+        'notification.import_success': '{count} 篇雜記已成功匯入！',
+        'notification.import_failed': '匯入失敗，請確認檔案格式是否正確。',
+        'notification.reminder_saved': '記憶提醒已儲存！',
+        'notification.reminder_empty': '請輸入要提醒的內容。',
+        'info.title': '網站資訊',
+        'info.tab.about': '關於網站',
+        'info.tab.usage': '使用說明',
+        'info.tab.privacy': '隱私權政策',
+        'info.tab.terms': '版權與免責',
+        'info.content.about': `<h3>歡迎來到 AI 心理筆記</h3><p>這是一個專為您打造的私密心靈空間。我們相信，書寫是整理思緒、安頓內心的有效方式。在這裡，您可以隨時隨地記錄下您的心情、想法與感受，不必擔心被他人看見。</p><p>除了作為您的數位心情日記，我們還內建了一位溫暖的 AI 心理師——溫老師。當您感到迷惘、壓力大，或只是想找人聊聊時，隨時可以與他展開對話。他會運用專業的心理學知識，傾聽您的煩惱，並引導您從不同角度看待問題。</p><p>希望這個工具能成為您自我關懷旅程中的溫暖夥伴，陪伴您走過每一個高低起伏。</p>`,
+        'info.content.usage': `<h3>如何使用這個工具？</h3><ol><li><strong><i class="ph-bold ph-pencil-line"></i> 寫下心情：</strong>在主畫面的輸入框中，自由書寫任何您想記錄的事，然後點擊「儲存今日雜記」。</li><li><strong><i class="ph-bold ph-book-open"></i> 回顧足跡：</strong>點擊「回顧心情足跡」按鈕，您可以查看、篩選所有過去的雜記。</li><li><strong><i class="ph-bold ph-chart-line-up"></i> 心情報告：</strong>點擊「生成近七日心情報告」按鈕，AI 將會為您分析最近的雜記，並提供一份視覺化的心情儀表板與建議。</li><li><strong><i class="ph-bold ph-chats-circle"></i> 與 AI 對話：</strong>點擊「AI 心理師」卡片下方的「開始對話」按鈕，即可與溫老師進行一對一的私密對談。AI 會自動回顧您尚未摘要過的雜記，以更好地理解您。</li><li><strong><i class="ph-bold ph-brain"></i> 查看與補充記憶：</strong>點擊「溫老師對你的了解」按鈕，您可以查看 AI 目前記得的所有事情，並手動為他補充重要的記憶點。</li><li><strong><i class="ph-bold ph-wind"></i> 呼吸練習：</strong>在與 AI 對話時，若感到焦慮，AI 可能會建議您進行呼吸練習。</li><li><strong><i class="ph-bold ph-gear"></i> 進行設定：</strong>點擊右上角的齒輪圖示，您可以設定您的 Gemini API 金鑰，這是與 AI 對話所必需的。</li><li><strong><i class="ph-bold ph-download-simple"></i> 資料管理：</strong>在「設定」中，您可以將所有的雜記與記憶匯出成一個 .json 檔案備份，或從備份檔案中匯入您先前的紀錄。<strong>您的資料，完全由您掌控。</strong></li></ol>`,
+        'info.content.privacy': `<h3>您的隱私至關重要</h3><p>我們深知心理健康的私密性，因此本工具的設計將您的隱私放在第一位。請您放心，這裡是一個絕對安全的空間。</p><h3>純前端運作，資料不離身</h3><p>本網站是一個<strong>純客戶端（Client-side）應用程式</strong>。這意味著所有的程式碼都在您的瀏覽器中執行，我們沒有後端伺服器，也<strong>絕對不會</strong>儲存、傳輸或窺探您的任何資料。</p><ul><li><strong>心情雜記與所有記憶：</strong>您寫下的所有內容、AI 生成的對話摘要、雜記摘要、元摘要等，都只儲存在您目前使用的瀏覽器的本地儲存空間（Local Storage）中。資料只存在您的裝置上，除非您手動清除瀏覽器資料，否則它會一直留在那裡。</li><li><strong>API 金鑰：</strong>您輸入的 Google Gemini API 金鑰同樣也只儲存在您瀏覽器的本地儲存空間中。它只會被用來直接與 Google 的 AI 服務進行驗證及對話，絕不會被傳送到我們的伺服器或任何第三方。</li></ul><p>簡單來說，您的所有秘密都安全地鎖在您自己的裝置裡。我們無法、也無意存取您的任何個人資訊。</p>`,
+        'info.content.terms': `<h3>版權與免責聲明</h3><p>本網站的介面設計、圖像及程式碼版權為本站開發者所有。© 2025 AI 心理筆記. All Rights Reserved.</p><h3>免責聲明</h3><p>AI 心理筆記是一個旨在提供情緒支持與自我探索輔助的工具，但它<strong>不能取代專業的心理諮商或醫療診斷</strong>。</p><ul><li>AI（溫老師）提供的建議與分析，是基於大型語言模型的演算法生成，僅供參考。它可能無法完全理解您複雜的個人情況，也可能出現不準確或不恰當的回應。</li><li>請勿將 AI 的回覆視為專業醫療建議。若您正經歷嚴重的心理困擾、情緒危機，或有任何可能危及自己或他人的想法，<strong>請立即停止使用本工具，並尋求頁面下方提供的專業協助資源</strong>。</li><li>您應對自己在本網站上的所有行為，以及如何解讀和使用 AI 生成的內容負完全責任。對於因使用本工具而可能導致的任何直接或間接後果，本網站概不負責。</li></ul><p>使用本網站即表示您已閱讀、理解並同意以上條款。</p>`,
+        'dashboard.title': '近七日心情報告',
+        'dashboard.loading': 'AI 正在為您分析近七天的雜記，請稍候...',
+        'dashboard.no_entries': '最近七天內沒有足夠的雜記可以分析喔！至少需要一篇雜記才能生成報告。',
+        'dashboard.error': '抱歉，分析時發生錯誤。請稍後再試或檢查您的 API 金鑰設定。',
+        'dashboard.mood_bar_title': '七日平均心情',
+        'dashboard.analysis_title': '心情趨勢分析',
+        'dashboard.suggestions_title': '給你的小建議',
+        'sponsor.title': '這工具對你有幫助嗎？',
+        'sponsor.message': '給開發者一個支持！小額贊助他吧！金額隨喜！讓他有動力開發更好的工具。',
+        'sponsor.confirm_button': '立即前往支持',
+        'sponsor.decline_button': '我不想支持',
+        'memory_dashboard.title': '溫老師對你的了解',
+        'memory_dashboard.description': '溫老師跟人一樣，會努力記住我們聊過的事。對於越久遠的事情，他會記得一個大概的輪廓（長期記憶）；對於近期發生的事，則會有比較清晰的印象（中期與近期記憶）。您也可以在下方手動為他補充重要的記憶點。',
+        'memory_dashboard.input_label': '為溫老師補充記憶提醒：',
+        'memory_dashboard.input_placeholder': '例如：我下週有一個重要的面試，心情很緊張...',
+        'memory_dashboard.save_button': '儲存提醒',
+        'memory_dashboard.empty': '目前溫老師還沒有關於您的記憶。開始寫雜記或與他對話來建立記憶吧！',
+        'memory_dashboard.tag.meta': '長期記憶',
+        'memory_dashboard.tag.journal': '中期記憶',
+        'memory_dashboard.tag.conversation': '近期記憶',
+        'memory_dashboard.tag.reminder': '手動提醒'
+    },
+    'en': {
+        'meta.title': 'AI Mind Journal',
+        'meta.description': 'A private space centered around you to write your feelings, review your journey, and talk with a warm AI therapist when needed.',
+        'title': 'AI Mind Journal',
+        'subtitle': 'A private, understanding space that listens to your heart',
+        'header.sponsor': 'Sponsor the Developer',
+        'header.info': 'Site Information',
+        'header.settings': 'Settings',
+        'header.other_apps': "Author's Other Apps",
+        'other_apps.title': 'Web Apps by @Arvin Chen',
+        'footer.copyright': '© 2025 AI Mind Journal. All Rights Reserved.',
+        'reminder.title': 'Gentle Reminder',
+        'reminder.content': "I am an AI therapist designed to provide support and guidance, but I cannot replace professional medical diagnosis. If you are in significant distress, please seek professional help.",
+        'reminder.link': 'professional help',
+        'journal.title': "Write Down Today's Mood",
+        'journal.label': 'Journal Content',
+        'journal.placeholder': "What happened today? Are there any feelings or thoughts you'd like to record? Feel free to write anytime, whether happy or sad, this is a safe space...",
+        'journal.save_button': 'Save Today\'s Journal',
+        'journal.history_button': 'Review Mood Footprints',
+        'analysis.title': 'Smart Analysis Tools',
+        'analysis.mood_dashboard_button': 'Generate 7-Day Mood Report',
+        'psychologist.title': 'AI Therapist',
+        'psychologist.name': 'Dr. Sage',
+        'psychologist.description': 'A professionally trained AI therapist specializing in listening, empathy, and guiding you to explore your inner self.',
+        'psychologist.chat_button': 'Start Conversation',
+        'psychologist.memory_button': 'What Dr. Sage Knows About You',
+        'history.title': 'My Mood Footprints',
+        'history.start_date': 'Start Date',
+        'history.end_date': 'End Date',
+        'history.filter_button': 'Filter',
+        'history.empty_message': 'No journal entries during this period!',
+        'history.delete_button': 'Delete this entry',
+        'chat.modal.title': 'Conversation with {nickname}',
+        'chat.end_chat_button': 'End & Save Chat',
+        'chat.typing': '{nickname} is thinking...',
+        'chat.summarizing': '{nickname} is reviewing your notes...',
+        'chat.input_placeholder': 'Tell me how you feel...',
+        'chat.start_breathing': 'Start 4-7-8 Breathing Exercise',
+        'chat.stop_breathing': 'Stop Exercise',
+        'settings.title': 'Settings',
+        'settings.model_select': 'AI Model Name',
+        'settings.model_placeholder': 'e.g., gemini-2.5-flash-lite',
+        'settings.api_key_label': 'Your Google Gemini API Key',
+        'settings.api_key_placeholder': 'Paste your API key here',
+        'settings.get_api_key': 'Get your free key here ↗',
+        'settings.data_management': 'Data Management',
+        'settings.import_button': 'Import Journals',
+        'settings.export_button': 'Export Journals',
+        'settings.save': 'Save Settings',
+       'settings.nickname': 'Your Nickname',
+        'settings.nickname_placeholder': 'How should Dr. Sage address you?',
+        'journal.title.personalized': '{nickname}, how are you today? Let\'s write down what happened',
+        'resources.title': 'Professional Mental Health Resources',
+        'resources.description': 'If you need immediate professional assistance, please use the following resources:',
+        'resources.line1': 'MOHW Relief Hotline: 1925',
+        'resources.line2': 'Lifeline Hotline: 1995',
+        'resources.line3': 'Teacher Chang Hotline: 1980',
+        'notification.no_api_key': 'Please enter your Gemini API key in "Settings" first!',
+        'notification.settings_saved': 'Settings have been saved!',
+        'notification.journal_saved': 'Journal entry saved successfully!',
+        'notification.journal_deleted': 'Journal entry has been deleted.',
+        'notification.journal_empty': 'Please write something before saving!',
+        'notification.saving_summary': 'Saving conversation memory, please wait...',
+        'notification.summary_saved': 'Conversation memory saved! Hope to chat again soon.',
+        'notification.summary_failed': 'Failed to save memory:',
+        'notification.generate_fail': 'Failed to send message:',
+        'notification.no_input': 'Please enter what you want to say.',
+        'notification.export_success': 'Journals exported successfully!',
+        'notification.export_failed': 'Journal export failed, no content to export.',
+        'notification.import_success': '{count} journal entries imported successfully!',
+        'notification.import_failed': 'Import failed. Please check if the file format is correct.',
+        'notification.reminder_saved': 'Memory reminder has been saved!',
+        'notification.reminder_empty': 'Please enter the content for the reminder.',
+        'info.title': 'Site Information',
+        'info.tab.about': 'About',
+        'info.tab.usage': 'Usage Guide',
+        'info.tab.privacy': 'Privacy Policy',
+        'info.tab.terms': 'Copyright & Disclaimer',
+        'info.content.about': `<h3>Welcome to AI Mind Journal</h3><p>This is a private mental space created just for you. We believe that writing is an effective way to organize thoughts and calm the mind. Here, you can record your moods, thoughts, and feelings anytime, anywhere, without worrying about being seen by others.</p><p>Besides being your digital mood diary, we have integrated a warm AI therapist—Dr. Sage. When you feel lost, stressed, or just want to talk, you can start a conversation with him at any time. He uses professional psychological knowledge to listen to your troubles and guide you to see problems from different perspectives.</p><p>We hope this tool can become a warm companion on your journey of self-care, accompanying you through every up and down.</p>`,
+        'info.content.usage': `<h3>How to Use This Tool?</h3><ol><li><strong><i class="ph-bold ph-pencil-line"></i> Write Down Your Mood:</strong> In the input box on the main screen, freely write anything you want to record, then click "Save Today's Journal".</li><li><strong><i class="ph-bold ph-book-open"></i> Review Footprints:</strong> Click the "Review Mood Footprints" button to view and filter all your past journal entries.</li><li><strong><i class="ph-bold ph-chart-line-up"></i> Mood Report:</strong> Click "Generate 7-Day Mood Report", and the AI will analyze your recent entries and provide a visualized mood dashboard with suggestions.</li><li><strong><i class="ph-bold ph-chats-circle"></i> Chat with AI:</strong> Click the "Start Conversation" button on the "AI Therapist" card for a one-on-one private chat with Dr. Sage. The AI will automatically review your unsummarized journal entries to better understand you.</li><li><strong><i class="ph-bold ph-brain"></i> View & Add Memory:</strong> Click "What Dr. Sage Knows About You" to see everything the AI remembers and manually add important memory points for him.</li><li><strong><i class="ph-bold ph-wind"></i> Breathing Exercise:</strong> If you feel anxious during the conversation, the AI may suggest a breathing exercise.</li><li><strong><i class="ph-bold ph-gear"></i> Configure Settings:</strong> Click the gear icon in the top right to set your Gemini API key, which is necessary for chatting with the AI.</li><li><strong><i class="ph-bold ph-download-simple"></i> Data Management:</strong> In "Settings", you can export all your journals and memories into a .json file for backup, or import your previous records from a backup file. <strong>You are in complete control of your data.</strong></li></ol>`,
+        'info.content.privacy': `<h3>Your Privacy is Paramount</h3><p>We understand the private nature of mental health, so this tool is designed with your privacy as the first priority. Please rest assured, this is an absolutely secure space.</p><h3>Purely Client-Side, Data Never Leaves Your Device</h3><p>This website is a <strong>purely client-side application</strong>. This means all code runs in your browser. We do not have a backend server and will <strong>absolutely not</strong> store, transmit, or peek at any of your data.</p><ul><li><strong>Mood Journals & All Memories:</strong> Everything you write, AI-generated conversation summaries, journal summaries, meta-summaries, etc., are stored only in your current browser's Local Storage. The data exists only on your device and will remain there unless you manually clear your browser data.</li><li><strong>API Key:</strong> Your Google Gemini API key is also stored only in your browser's Local Storage. It is only used to directly authenticate and communicate with Google's AI services and is never sent to our servers or any third party.</li></ul><p>In short, all your secrets are safely locked in your own device. We cannot and do not intend to access any of your personal information.</p>`,
+        'info.content.terms': `<h3>Copyright & Disclaimer</h3><p>The interface design, images, and code of this website are the copyright of the site developer. © 2025 AI Mind Journal. All Rights Reserved.</p><h3>Disclaimer</h3><p>AI Mind Journal is a tool intended to provide emotional support and aid in self-exploration, but it <strong>cannot replace professional psychological counseling or medical diagnosis</strong>.</p><ul><li>The advice and analysis provided by the AI (Dr. Sage) are generated based on large language model algorithms and are for reference only. It may not fully understand your complex personal situation and may provide inaccurate or inappropriate responses.</li><li>Do not treat the AI's responses as professional medical advice. If you are experiencing severe psychological distress, an emotional crisis, or have any thoughts that may endanger yourself or others, <strong>please immediately stop using this tool and seek the professional help resources provided at the bottom of the page</strong>.</li><li>You are fully responsible for all your actions on this website and for how you interpret and use the AI-generated content. This website is not liable for any direct or indirect consequences that may result from using this tool.</li></ul><p>By using this website, you indicate that you have read, understood, and agreed to the above terms.</p>`,
+        'dashboard.title': '7-Day Mood Report',
+        'dashboard.loading': 'The AI is analyzing your journal entries from the last seven days, please wait...',
+        'dashboard.no_entries': "There aren't enough journal entries in the last seven days to analyze! At least one entry is required to generate a report.",
+        'dashboard.error': 'Sorry, an error occurred during analysis. Please try again later or check your API key settings.',
+        'dashboard.mood_bar_title': '7-Day Average Mood',
+        'dashboard.analysis_title': 'Mood Trend Analysis',
+        'dashboard.suggestions_title': 'A Few Suggestions for You',
+        'sponsor.title': 'Is this tool helpful to you?',
+        'sponsor.message': 'Support the developer! A small sponsorship can motivate him to create even better tools. Any amount is appreciated!',
+        'sponsor.confirm_button': 'Sponsor Now',
+        'sponsor.decline_button': 'I prefer not to',
+        'memory_dashboard.title': 'What Dr. Sage Knows About You',
+        'memory_dashboard.description': 'Like a person, Dr. Sage tries to remember what we\'ve talked about. For older events, he remembers a general outline (Long-term Memory); for recent events, he has a clearer impression (Mid & Short-term Memory). You can also manually add important memory points for him below.',
+        'memory_dashboard.input_label': 'Add a memory reminder for Dr. Sage:',
+        'memory_dashboard.input_placeholder': 'e.g., I have an important interview next week and I am very nervous...',
+        'memory_dashboard.save_button': 'Save Reminder',
+        'memory_dashboard.empty': 'Dr. Sage has no memories of you yet. Start writing journals or chatting with him to build memories!',
+        'memory_dashboard.tag.meta': 'Long-term',
+        'memory_dashboard.tag.journal': 'Mid-term',
+        'memory_dashboard.tag.conversation': 'Short-term',
+        'memory_dashboard.tag.reminder': 'Manual'
+    },
+    'ja': {
+        'meta.title': 'AI こころのノート',
+        'meta.description': 'あなた中心のプライベートな空間。気持ちを書き、足跡を振り返り、必要な時には温かいAIセラピストと対話できます。',
+        'title': 'AI こころのノート',
+        'subtitle': 'あなたの心を理解し、耳を傾けるプライベートな空間',
+        'header.sponsor': '開発者を支援',
+        'header.info': 'サイト情報',
+        'header.settings': '設定',
+        'header.other_apps': '作者の他のアプリ',
+        'other_apps.title': '@Arvin Chen 開発のWebアプリ一覧',
+        'footer.copyright': '© 2025 AI こころのノート. All Rights Reserved.',
+        'reminder.title': '安心のためのリマインダー',
+        'reminder.content': '私はサポートと導きを提供するAIセラピストですが、専門的な医療診断に代わることはできません。非常にお辛い場合は、必ず専門家の助けを求めてください。',
+        'reminder.link': '専門家の助け',
+        'journal.title': '今日の気持ちを書き留める',
+        'journal.label': '日記の内容',
+        'journal.placeholder': '今日は何がありましたか？記録したい気持ちや考えはありますか？嬉しい時も悲しい時も、いつでも書き留めてください。ここは安全な空間です…',
+        'journal.save_button': '今日の日記を保存',
+        'journal.history_button': '心の足跡を振り返る',
+        'analysis.title': 'スマート分析ツール',
+        'analysis.mood_dashboard_button': '過去7日間の気分レポートを作成',
+        'psychologist.title': 'AIセラピスト',
+        'psychologist.name': '温先生 (On-sensei)',
+        'psychologist.description': '専門的な訓練を受けたAIセラピスト。傾聴、共感し、あなたの内面を探る手助けを専門としています。',
+        'psychologist.chat_button': '対話を開始',
+        'psychologist.memory_button': '温先生があなたについて知っていること',
+        'history.title': '私の心の足跡',
+        'history.start_date': '開始日',
+        'history.end_date': '終了日',
+        'history.filter_button': '絞り込む',
+        'history.empty_message': 'この期間の日記はありません！',
+        'history.delete_button': 'この記録を削除',
+        'chat.modal.title': '{nickname} との対話',
+        'chat.end_chat_button': '対話を終了して保存',
+        'chat.typing': '{nickname} が考えています...',
+        'chat.summarizing': '{nickname} があなたのノートを読み返しています...',
+        'chat.input_placeholder': 'あなたの気持ちを話してください…',
+        'chat.start_breathing': '4-7-8呼吸法を開始',
+        'chat.stop_breathing': '練習を停止',
+        'settings.title': '設定',
+        'settings.model_select': 'AIモデル名',
+        'settings.model_placeholder': '例: gemini-2.5-flash-lite',
+        'settings.api_key_label': 'あなたの Google Gemini API キー',
+        'settings.api_key_placeholder': 'ここにAPIキーを貼り付けてください',
+        'settings.get_api_key': 'ここから無料キーを取得 ↗',
+        'settings.data_management': 'データ管理',
+        'settings.import_button': '日記をインポート',
+        'settings.export_button': '日記をエクスポート',
+        'settings.save': '設定を保存',
+       'settings.nickname': 'あなたのニックネーム',
+        'settings.nickname_placeholder': '温先生に何と呼んでもらいましょうか？',
+        'journal.title.personalized': '{nickname}さん、今日はいかがでしたか？何があったか記録してみましょう',
+        'resources.title': '専門的な心の相談窓口',
+        'resources.description': 'すぐに専門的な助けが必要な場合は、以下の相談窓口をご利用ください（日本の窓口例）：',
+        'resources.line1': 'こころの健康相談統一ダイヤル',
+        'resources.line2': 'いのちの電話',
+        'resources.line3': 'よりそいホットライン',
+        'notification.no_api_key': '先に「設定」でGemini APIキーを入力してください！',
+        'notification.settings_saved': '設定が保存されました！',
+        'notification.journal_saved': '日記が正常に保存されました！',
+        'notification.journal_deleted': '日記が削除されました。',
+        'notification.journal_empty': '保存する前に何か内容を書いてください！',
+        'notification.saving_summary': '対話の記憶を保存しています、少々お待ちください…',
+        'notification.summary_saved': '対話の記憶が保存されました！またのお越しをお待ちしています。',
+        'notification.summary_failed': '記憶の保存に失敗しました：',
+        'notification.generate_fail': 'メッセージの送信に失敗しました：',
+        'notification.no_input': '話したいことを入力してください。',
+        'notification.export_success': '日記が正常にエクスポートされました！',
+        'notification.export_failed': 'エクスポートに失敗しました。エクスポートする内容がありません。',
+        'notification.import_success': '{count}件の日記が正常にインポートされました！',
+        'notification.import_failed': 'インポートに失敗しました。ファイル形式が正しいか確認してください。',
+        'notification.reminder_saved': '記憶リマインダーが保存されました！',
+        'notification.reminder_empty': 'リマインドする内容を入力してください。',
+        'info.title': 'サイト情報',
+        'info.tab.about': 'このサイトについて',
+        'info.tab.usage': '使い方',
+        'info.tab.privacy': 'プライバシーポリシー',
+        'info.tab.terms': '著作権と免責事項',
+        'info.content.about': `<h3>AI こころのノートへようこそ</h3><p>ここは、あなたのために作られたプライベートな心の空間です。書くことは、思考を整理し、心を落ち着かせる効果的な方法だと私たちは信じています。ここでは、いつでもどこでも、他人の目を気にすることなく、あなたの気分や考え、感情を記録できます。</p><p>デジタルの気分日記としてだけでなく、温かいAIセラピスト「温先生」も内蔵されています。道に迷ったり、ストレスを感じたり、ただ誰かと話したい時、いつでも彼と対話を始めることができます。彼は専門的な心理学の知識を活かして、あなたの悩みに耳を傾け、異なる角度から問題を見る手助けをします。</p><p>このツールが、あなたのセルフケアの旅における温かいパートナーとなり、人生の浮き沈みを共に歩むことを願っています。</p>`,
+        'info.content.usage': `<h3>このツールの使い方</h3><ol><li><strong><i class="ph-bold ph-pencil-line"></i> 気持ちを書く：</strong>メイン画面の入力ボックスに、記録したいことを自由に書き、「今日の日記を保存」をクリックします。</li><li><strong><i class="ph-bold ph-book-open"></i> 足跡を振り返る：</strong>「心の足跡を振り返る」ボタンをクリックすると、過去のすべての日記を閲覧・絞り込みできます。</li><li><strong><i class="ph-bold ph-chart-line-up"></i> 気分レポート：</strong>「過去7日間の気分レポートを作成」をクリックすると、AIが最近の記録を分析し、視覚化された気分ダッシュボードと提案を提供します。</li><li><strong><i class="ph-bold ph-chats-circle"></i> AIと対話する：</strong>「AIセラピスト」カードの「対話を開始」ボタンをクリックすると、温先生と一対一のプライベートなチャットができます。AIはあなたをより良く理解するため、まだ要約されていない日記を自動的に読み返します。</li><li><strong><i class="ph-bold ph-brain"></i> 記憶の確認と補足：</strong>「温先生があなたについて知っていること」をクリックすると、AIが現在覚えているすべての事柄を確認し、手動で重要な記憶ポイントを補足できます。</li><li><strong><i class="ph-bold ph-wind"></i> 呼吸法：</strong>対話中に不安を感じた場合、AIが呼吸法を提案することがあります。</li><li><strong><i class="ph-bold ph-gear"></i> 設定を行う：</strong>右上の歯車アイコンをクリックして、AIとの対話に必要なGemini APIキーを設定できます。</li><li><strong><i class="ph-bold ph-download-simple"></i> データ管理：</strong>「設定」で、すべての日記と記憶をバックアップ用の.jsonファイルとしてエクスポートしたり、バックアップファイルから以前の記録をインポートしたりできます。<strong>あなたのデータは、完全にあなたの管理下にあります。</strong></li></ol>`,
+        'info.content.privacy': `<h3>あなたのプライバシーは最優先です</h3><p>私たちはメンタルヘルスのプライベートな性質を深く理解しているため、このツールはあなたのプライバシーを第一に考えて設計されています。ここは絶対に安全な空間ですので、ご安心ください。</p><h3>純粋なフロントエンド動作、データはあなたのデバイスから離れません</h3><p>このウェブサイトは<strong>純粋なクライアントサイドアプリケーション</strong>です。これは、すべてのコードがあなたのブラウザ内で実行されることを意味します。私たちにはバックエンドサーバーはなく、あなたのいかなるデータも<strong>絶対に</strong>保存、転送、閲覧することはありません。</p><ul><li><strong>気分日記とすべての記憶：</strong>あなたが書いたすべての内容、AIが生成した対話の要約、日記の要約、メタ要約などは、すべて現在使用しているブラウザのローカルストレージにのみ保存されます。データはあなたのデバイス上にのみ存在し、手動でブラウザのデータを消去しない限り、そこに残り続けます。</li><li><strong>APIキー：</strong>入力したGoogle Gemini APIキーも同様に、ブラウザのローカルストレージにのみ保存されます。それはGoogleのAIサービスとの認証および対話に直接使用されるだけで、私たちのサーバーや第三者に送信されることは決してありません。</li></ul><p>要するに、あなたのすべての秘密は、あなた自身のデバイスの中に安全に保管されています。私たちはあなたの個人情報にアクセスすることはできませんし、その意図もありません。</p>`,
+        'info.content.terms': `<h3>著作権と免責事項</h3><p>このウェブサイトのインターフェースデザイン、画像、およびプログラムコードの著作権は、サイト開発者に帰属します。© 2025 AI こころのノート. All Rights Reserved.</p><h3>免責事項</h3><p>「AI こころのノート」は、感情的なサポートと自己探求の補助を目的としたツールですが、<strong>専門的な心理カウンセリングや医療診断に代わるものではありません</strong>。</p><ul><li>AI（温先生）が提供するアドバイスや分析は、大規模言語モデルのアルゴリズムに基づいて生成されたものであり、参考情報に過ぎません。あなたの複雑な個人的状況を完全に理解できない可能性があり、不正確または不適切な応答をすることもあります。</li><li>AIの応答を専門的な医療アドバイスと見なさないでください。深刻な心理的苦痛、感情的な危機、または自他を危険にさらす可能性のある考えを経験している場合は、<strong>直ちにこのツールの使用を中止し、ページ下部に記載されている専門的な支援窓口に助けを求めてください</strong>。</li><li>あなたはこのウェブサイト上でのすべての行動、およびAIが生成したコンテンツの解釈と使用方法について、全責任を負うものとします。このツールの使用に起因する可能性のあるいかなる直接的または間接的な結果についても、当サイトは一切の責任を負いません。</li></ul><p>このウェブサイトを使用することにより、あなたは上記の条項を読み、理解し、同意したものとみなされます。</p>`,
+        'dashboard.title': '過去7日間の気分レポート',
+        'dashboard.loading': 'AIが過去7日間の日記を分析しています。少々お待ちください…',
+        'dashboard.no_entries': '過去7日間に分析できる日記がありません！レポートを作成するには、少なくとも1件の日記が必要です。',
+        'dashboard.error': '申し訳ありません、分析中にエラーが発生しました。後でもう一度試すか、APIキーの設定を確認してください。',
+        'dashboard.mood_bar_title': '7日間の平均気分',
+        'dashboard.analysis_title': '気分の傾向分析',
+        'dashboard.suggestions_title': 'あなたへの小さな提案',
+        'sponsor.title': 'このツールは役に立ちましたか？',
+        'sponsor.message': '開発者を支援しませんか？少額の寄付が、より良いツールを開発する彼のモチベーションになります。金額は自由です！',
+        'sponsor.confirm_button': 'すぐに支援する',
+        'sponsor.decline_button': '支援しない',
+        'memory_dashboard.title': '温先生があなたについて知っていること',
+        'memory_dashboard.description': '温先生は人間のように、私たちが話したことを覚えようとします。昔のことについては大まかな概要（長期記憶）を、最近のことについてはより鮮明な印象（中期・短期記憶）を持っています。以下で手動で重要な記憶ポイントを彼に補足することもできます。',
+        'memory_dashboard.input_label': '温先生に記憶リマインダーを補足する：',
+        'memory_dashboard.input_placeholder': '例：来週、大事な面接があって、とても緊張しています…',
+        'memory_dashboard.save_button': 'リマインダーを保存',
+        'memory_dashboard.empty': '現在、温先生にはあなたに関する記憶がありません。日記を書き始めたり、彼と対話したりして記憶を築きましょう！',
+        'memory_dashboard.tag.meta': '長期記憶',
+        'memory_dashboard.tag.journal': '中期記憶',
+        'memory_dashboard.tag.conversation': '短期記憶',
+        'memory_dashboard.tag.reminder': '手動'
+    }
+};
+
+
+            // ==================== Initialization ====================
+                       function initialize() {
+if (USE_BUILT_IN_AI) {
+        initializeBuiltInAI();
+    }
+    const savedApiKey = localStorage.getItem('geminiApiKeyForJournal');
+    const savedModel = localStorage.getItem('selectedModelForJournal') || 'gemini-2.5-flash-lite';
+    const savedNickname = localStorage.getItem('userNicknameForJournal') || '';
+
+    if (savedApiKey) dom.geminiApiKey.value = savedApiKey;
+    dom.modelInputModal.value = savedModel;
+    dom.nicknameInputModal.value = savedNickname;
+
+
+    const savedLang = localStorage.getItem('journalLang') || 'zh-TW';
+    setLanguage(savedLang); // This will also call updateUIWithTranslations
+
+    setupEventListeners();
+}
+
+                       function updateUIWithTranslations() {
+    document.documentElement.lang = currentLanguage.split('-')[0];
+
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.dataset.i18n;
+        if (t[key]) {
+             // We handle the personalized title separately
+            if (el.id === 'personalized-journal-title') return;
+
+            const icon = el.querySelector('i');
+            let textContent = t[key];
+            if (el.querySelector('span')) {
+               el.querySelector('span').textContent = textContent;
+            } 
+            else if (icon) {
+                el.innerHTML = '';
+                el.appendChild(icon);
+                el.appendChild(document.createTextNode(' ' + textContent));
+            }
+            else {
+                el.textContent = textContent;
+            }
+        }
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+        const key = el.dataset.i18nPlaceholder;
+        if (t[key]) el.placeholder = t[key];
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+        const key = el.dataset.i18nTitle;
+        if (t[key]) el.title = t[key];
+    });
+
+    // Handle personalized journal title
+    const nickname = localStorage.getItem('userNicknameForJournal') || '';
+    if (nickname && dom.personalizedJournalTitle) {
+        dom.personalizedJournalTitle.textContent = t['journal.title.personalized'].replace('{nickname}', nickname);
+    } else if (dom.personalizedJournalTitle) {
+        dom.personalizedJournalTitle.textContent = t['journal.title'];
+    }
+    
+    // Dynamically update chat loading text placeholder to use AI's name
+    if(dom.chatLoadingText) {
+        dom.chatLoadingText.dataset.i18n = 'chat.typing';
+        dom.chatLoadingText.textContent = t['chat.typing'].replace('{nickname}', t['psychologist.name']);
+    }
+}
+function setLanguage(lang) {
+    currentLanguage = lang;
+    t = i18nData[lang];
+    localStorage.setItem('journalLang', lang);
+
+    // Update UI
+    updateUIWithTranslations();
+    renderPsychologistCard();
+
+    // Update language switcher style
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+        if (btn.dataset.lang === lang) {
+            btn.classList.add('theme-bg-primary', 'text-white');
+            btn.classList.remove('hover:bg-gray-200');
+        } else {
+            btn.classList.remove('theme-bg-primary', 'text-white');
+            btn.classList.add('hover:bg-gray-200');
+        }
+    });
+}
+
+            // ==================== Event Listeners ====================
+            function setupEventListeners() {
+                dom.journalForm.addEventListener('submit', handleSaveJournalEntry);
+document.getElementById('language-switcher').addEventListener('click', (e) => {
+    if (e.target.matches('.lang-btn')) {
+        const lang = e.target.dataset.lang;
+        setLanguage(lang);
+    }
+});
+                dom.openHistoryModalBtn.addEventListener('click', openHistoryModal);
+                dom.filterJournalsBtn.addEventListener('click', () => renderJournalHistory(true));
+                dom.chatForm.addEventListener('submit', handleSendMessage);
+                dom.endChatBtn.addEventListener('click', handleEndChat);
+                dom.saveSettingsBtn.addEventListener('click', saveSettings);
+                dom.exportJournalsBtn.addEventListener('click', handleExportData);
+                dom.importJournalsBtn.addEventListener('click', () => dom.importFileInput.click());
+                dom.importFileInput.addEventListener('change', handleImportData);
+                dom.stopBreathingBtn.addEventListener('click', stopBreathingExercise);
+                dom.openMoodDashboardBtn.addEventListener('click', handleGenerateMoodReport);
+
+                dom.sponsorConfirmBtn.addEventListener('click', () => {
+                    window.open(SPONSOR_URL, '_blank');
+                    closeModal(dom.sponsorshipModal);
+                });
+                dom.sponsorDeclineBtn.addEventListener('click', () => {
+                    closeModal(dom.sponsorshipModal);
+                });
+
+                document.querySelectorAll('[data-modal-target]').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const modalId = button.dataset.modalTarget;
+                        const modal = document.getElementById(modalId);
+                        if (modalId === 'info-modal') {
+                            populateInfoModal();
+                        }
+                        if (modalId === 'memory-dashboard-modal') {
+                            openMemoryDashboard();
+                        }
+                        openModal(modal);
+                    });
+                });
+
+                document.querySelectorAll('.modal-close').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const modal = button.closest('.modal');
+                        closeModal(modal);
+                    });
+                });
+
+                if (dom.infoTabs) {
+                    dom.infoTabs.addEventListener('click', (e) => {
+                        if (e.target.matches('.info-tab-btn')) {
+                            const tabId = e.target.dataset.tab;
+                            dom.infoTabs.querySelectorAll('.info-tab-btn').forEach(btn => {
+                                btn.classList.remove('theme-primary', 'border-current');
+                                btn.classList.add('border-transparent', 'theme-text-light', 'hover:border-gray-400');
+                            });
+                            e.target.classList.add('theme-primary', 'border-current');
+                            e.target.classList.remove('border-transparent', 'theme-text-light', 'hover:border-gray-400');
+                            document.querySelectorAll('.info-tab-content').forEach(content => {
+                                content.classList.add('hidden');
+                            });
+                            const activeContent = document.getElementById(`tab-content-${tabId}`);
+                            if (activeContent) activeContent.classList.remove('hidden');
+                        }
+                    });
+                }
+                
+                dom.memoryReminderForm.addEventListener('submit', handleSaveMemoryReminder);
+            }
+
+            // ==================== Core App Logic: UI Rendering ====================
+            function renderPsychologistCard() {
+                 
+                const card = document.createElement('div');
+                card.className = 'card-hover-effect theme-bg-card rounded-xl p-5 flex flex-col sm:flex-row items-center gap-6 shadow-lg transition-all duration-200';
+                card.innerHTML = `
+                    <div class="flex-shrink-0">
+                        <i class="ph-duotone ph-user-circle-gear text-6xl sm:text-7xl theme-primary"></i>
+                    </div>
+                    <div class="text-center sm:text-left">
+                        <h3 class="text-xl font-bold theme-text">${t['psychologist.name']}</h3>
+                        <p class="text-sm theme-text-light mt-1 mb-4">${t['psychologist.description']}</p>
+                        <button id="start-chat-btn" class="w-full sm:w-auto theme-bg-primary theme-bg-primary-hover text-white font-bold py-2 px-6 rounded-lg flex items-center justify-center gap-2 transition-transform active:scale-95">
+                            <i class="ph-fill ph-chats-circle"></i>
+                            <span>${t['psychologist.chat_button']}</span>
+                        </button>
+                    </div>
+                `;
+                card.querySelector('#start-chat-btn').addEventListener('click', handleStartChat);
+                dom.psychologistCardContainer.innerHTML = '';
+                dom.psychologistCardContainer.appendChild(card);
+            }
+
+            function renderJournalHistory(isFiltered = false) {
+                let entries = getJournalEntries().sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                if (isFiltered) {
+                    const startDate = dom.startDate.value ? new Date(dom.startDate.value).setHours(0, 0, 0, 0) : null;
+                    const endDate = dom.endDate.value ? new Date(dom.endDate.value).setHours(23, 59, 59, 999) : null;
+
+                    entries = entries.filter(entry => {
+                        const entryDate = new Date(entry.timestamp);
+                        if (startDate && entryDate < startDate) return false;
+                        if (endDate && entryDate > endDate) return false;
+                        return true;
+                    });
+                }
+
+                dom.journalHistoryList.innerHTML = '';
+                if (entries.length === 0) {
+                    dom.noJournalsMessage.classList.remove('hidden');
+                    return;
+                }
+                dom.noJournalsMessage.classList.add('hidden');
+
+                 
+                entries.forEach(entry => {
+                    const card = document.createElement('div');
+                    card.className = 'theme-bg-input rounded-xl p-4 flex flex-col gap-2 shadow-sm border theme-border';
+                    const entryDate = new Date(entry.timestamp);
+                    const formattedDate = `${entryDate.getFullYear()}/${String(entryDate.getMonth() + 1).padStart(2, '0')}/${String(entryDate.getDate()).padStart(2, '0')}`;
+                    const formattedTime = entryDate.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' });
+
+                    card.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <p class="font-semibold text-sm theme-primary">${formattedDate} ${formattedTime}</p>
+                            <button class="delete-journal-btn text-slate-400 hover:text-red-500" data-id="${entry.id}" title="${t['history.delete_button']}">
+                                <i class="ph-bold ph-trash text-lg"></i>
+                            </button>
+                        </div>
+                        <p class="text-base theme-text-light leading-relaxed break-words whitespace-pre-wrap">${entry.content}</p>
+                    `;
+                    card.querySelector('.delete-journal-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        handleDeleteJournal(entry.id);
+                        renderJournalHistory(isFiltered);
+                    });
+                    dom.journalHistoryList.appendChild(card);
+                });
+            }
+
+            // ==================== Mood Dashboard Logic ====================
+            async function handleGenerateMoodReport() {
+                 
+                const apiKey = localStorage.getItem('geminiApiKeyForJournal');
+                if (!apiKey) {
+                    showNotification(t['notification.no_api_key'], 'error');
+                    openModal(dom.settingsModal);
+                    return;
+                }
+
+                openModal(dom.moodDashboardModal);
+                renderMoodDashboardLoading();
+
+                try {
+                    const sevenDaysAgo = new Date();
+                    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                    sevenDaysAgo.setHours(0, 0, 0, 0);
+
+                    const recentEntries = getJournalEntries().filter(entry => new Date(entry.timestamp) >= sevenDaysAgo);
+
+                    if (recentEntries.length === 0) {
+                        renderMoodDashboardMessage(t['dashboard.no_entries']);
+                        return;
+                    }
+
+                    const prompt = createMoodReportPrompt(recentEntries);
+                    const responseText = await callGeminiApi(prompt, true);
+                    const reportData = JSON.parse(responseText);
+
+                    renderMoodDashboard(reportData);
+
+                } catch (error) {
+                    console.error("Mood report generation failed:", error);
+                    renderMoodDashboardMessage(t['dashboard.error'], true);
+                }
+            }
+
+            function renderMoodDashboard(data) {
+                 
+                const score = data.averageScore || 0;
+                const percentage = ((score + 10) / 20) * 100;
+                
+                const getBarColor = (p) => {
+                    if (p < 25) return '#60a5fa';
+                    if (p < 50) return '#34d399';
+                    if (p < 75) return '#facc15';
+                    return '#f97316';
+                };
+                
+                const contentHTML = `
+                    <div class="space-y-6 modal-prose">
+                        <div>
+                            <h3 class="flex items-center gap-2 !mt-0"><i class="ph-bold ph-chart-pie-slice"></i>${t['dashboard.mood_bar_title']}</h3>
+                            <div class="flex items-center gap-4">
+                                <span class="text-2xl font-bold" style="color: ${getBarColor(percentage)}">${score.toFixed(1)}</span>
+                                <div class="mood-bar-bg flex-1">
+                                    <div class="mood-bar-visual" style="width: ${percentage}%; background-color: ${getBarColor(percentage)};"></div>
+                                </div>
+                            </div>
+                            <p class="text-center text-sm theme-text-light mt-2">${data.moodSummary || ''}</p>
+                        </div>
+                        <div>
+                            <h3 class="flex items-center gap-2"><i class="ph-bold ph-presentation-chart"></i>${t['dashboard.analysis_title']}</h3>
+                            <p>${data.analysis || ''}</p>
+                        </div>
+                        <div>
+                            <h3 class="flex items-center gap-2"><i class="ph-bold ph-lightbulb"></i>${t['dashboard.suggestions_title']}</h3>
+                            <ul>
+                                ${data.suggestions.map(s => `<li>${s}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                dom.moodDashboardContent.innerHTML = contentHTML;
+            }
+
+            function renderMoodDashboardLoading() {
+                 
+                dom.moodDashboardContent.innerHTML = `
+                    <div class="flex flex-col items-center justify-center text-center py-12">
+                        <div class="spinner w-10 h-10 border-4 rounded-full mb-4"></div>
+                        <p class="theme-text-light">${t['dashboard.loading']}</p>
+                    </div>
+                `;
+            }
+
+            function renderMoodDashboardMessage(message, isError = false) {
+                 dom.moodDashboardContent.innerHTML = `
+                    <div class="flex flex-col items-center justify-center text-center py-12">
+                        <i class="ph-bold ${isError ? 'ph-x-circle text-red-500' : 'ph-info text-blue-500'} text-5xl mb-4"></i>
+                        <p class="theme-text-light">${message}</p>
+                    </div>
+                `;
+            }
+
+            // ==================== Journal & Memory Management ====================
+            function getFromStorage(key) {
+                return JSON.parse(localStorage.getItem(key)) || [];
+            }
+            
+            function saveToStorage(key, data) {
+                localStorage.setItem(key, JSON.stringify(data));
+            }
+
+            function getJournalEntries() {
+                const entries = getFromStorage('mood_journal_entries');
+                return entries.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)); // Sort oldest to newest for processing
+            }
+
+            function saveJournalEntries(entries) {
+                saveToStorage('mood_journal_entries', entries);
+            }
+
+            function handleSaveJournalEntry(event) {
+                event.preventDefault();
+                 
+                const content = dom.journalContent.value.trim();
+                if (!content) {
+                    showNotification(t['notification.journal_empty'], 'error');
+                    return;
+                }
+                const entries = getFromStorage('mood_journal_entries'); // No need to sort here
+                const newEntry = {
+                    id: `journal_${Date.now()}`,
+                    content: content,
+                    timestamp: new Date().toISOString()
+                };
+                entries.push(newEntry);
+                saveJournalEntries(entries);
+                showNotification(t['notification.journal_saved'], 'success');
+                dom.journalForm.reset();
+                
+                checkSponsorshipMilestone();
+            }
+            
+            function checkSponsorshipMilestone() {
+                const totalEntries = (getFromStorage('mood_journal_entries')).length;
+                const milestone = 7;
+                
+                if (totalEntries > 0 && totalEntries % milestone === 0) {
+                    const storageKey = `sponsorshipPromptShownFor_${totalEntries}`;
+                    if (!localStorage.getItem(storageKey)) {
+                        openModal(dom.sponsorshipModal);
+                        localStorage.setItem(storageKey, 'true');
+                    }
+                }
+            }
+
+            function handleDeleteJournal(id) {
+                let entries = getFromStorage('mood_journal_entries');
+                entries = entries.filter(e => e.id !== id);
+                saveJournalEntries(entries);
+                showNotification(i18nData['zh-TW']['notification.journal_deleted'], 'info');
+            }
+
+            function openHistoryModal() {
+                renderJournalHistory();
+                openModal(dom.historyModal);
+            }
+
+            function populateInfoModal() {
+                 
+                dom.tabContentAbout.innerHTML = t['info.content.about'] || '';
+                dom.tabContentUsage.innerHTML = t['info.content.usage'] || '';
+                dom.tabContentPrivacy.innerHTML = t['info.content.privacy'] || '';
+                dom.tabContentTerms.innerHTML = t['info.content.terms'] || '';
+            }
+
+            // ==================== Data Import/Export ====================
+            function handleExportData() {
+                const dataToExport = {
+                    journalEntries: getFromStorage('mood_journal_entries'),
+                    journalSummaries: getFromStorage('journal_summaries'),
+                    metaSummaries: getFromStorage('meta_summaries'),
+                    conversationSummaries: getFromStorage(`conversation_summaries_${PSYCHOLOGIST_ID}`),
+                    memoryWarehouse: getFromStorage('memory_warehouse') // [新增] 匯出記憶倉庫
+                };
+                if (dataToExport.journalEntries.length === 0 && dataToExport.journalSummaries.length === 0 && dataToExport.metaSummaries.length === 0) { // [修改] 更新檢查條件
+                    showNotification(t['notification.export_failed'], 'error');
+                    return;
+                }
+                const dataStr = JSON.stringify(dataToExport, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                const date = new Date().toISOString().slice(0, 10);
+                link.download = `ai-journal-backup-full-${date}.json`;
+                link.href = url;
+                link.click();
+                URL.revokeObjectURL(url);
+                showNotification(t['notification.export_success'], 'success');
+            }
+
+            function handleImportData(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        if (Array.isArray(importedData)) { // Legacy format
+                            saveToStorage('mood_journal_entries', importedData);
+                            showNotification(i18nData['zh-TW']['notification.import_success'].replace('{count}', importedData.length), 'success');
+                        } else if (importedData.journalEntries) { // New format
+                            saveToStorage('mood_journal_entries', importedData.journalEntries || []);
+                            saveToStorage('journal_summaries', importedData.journalSummaries || []);
+                            saveToStorage('meta_summaries', importedData.metaSummaries || []);
+                            saveToStorage(`conversation_summaries_${PSYCHOLOGIST_ID}`, importedData.conversationSummaries || []);
+                            saveToStorage('memory_warehouse', importedData.memoryWarehouse || []); // [新增] 匯入記憶倉庫
+                            const count = importedData.journalEntries.length;
+                            showNotification(i18nData['zh-TW']['notification.import_success'].replace('{count}', count), 'success');
+                        } else {
+                           throw new Error('Invalid format');
+                        }
+                        
+                        if (dom.historyModal && !dom.historyModal.classList.contains('hidden')) {
+                            renderJournalHistory();
+                        }
+                    } catch (error) {
+                        showNotification(i18nData['zh-TW']['notification.import_failed'], 'error');
+                        console.error("Import failed:", error);
+                    } finally {
+                        dom.importFileInput.value = '';
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            // ==================== Chat Logic & Memory Processing ====================
+            async function handleStartChat() {
+                 
+                const apiKey = localStorage.getItem('geminiApiKeyForJournal');
+                if (!apiKey) {
+                    showNotification(t['notification.no_api_key'], 'error');
+                    openModal(dom.settingsModal);
+                    return;
+                }
+                
+                openModal(dom.chatModal);
+                setChatLoading(true, t['chat.summarizing']);
+
+                try {
+                    await processAndSummarizeNewJournals();
+
+                    conversationHistory = getFromStorage(`conversation_history_${PSYCHOLOGIST_ID}`);
+                    const titleFormat = t['chat.modal.title'] || '與 {nickname} 的對話';
+                    dom.chatModalTitle.textContent = titleFormat.replace('{nickname}', t['psychologist.name']);
+                    renderChatLog();
+                    
+                    if (conversationHistory.length === 0) {
+                        await triggerAiOpening();
+                    }
+                } catch (error) {
+                    console.error("Failed to start chat or process memories:", error);
+                    showNotification(t['notification.generate_fail'] + error.message, 'error');
+                    closeModal(dom.chatModal);
+                } finally {
+                    setChatLoading(false);
+                }
+            }
+            
+            async function processAndSummarizeNewJournals() {
+                const journalSummaries = getFromStorage('journal_summaries');
+                const lastSummaryEndDate = journalSummaries.length > 0 ? new Date(journalSummaries[journalSummaries.length - 1].endDate) : new Date(0);
+                
+                const allEntries = getJournalEntries(); // Sorted oldest to newest
+                const newEntries = allEntries.filter(entry => new Date(entry.timestamp) > lastSummaryEndDate);
+
+                if (newEntries.length > 0) {
+                    const newSummaryContent = await callGeminiApi(createJournalSummaryPrompt(newEntries));
+                    const newSummary = {
+                        id: `jsum_${Date.now()}`,
+                        startDate: newEntries[0].timestamp,
+                        endDate: newEntries[newEntries.length - 1].timestamp,
+                        content: newSummaryContent,
+                        type: 'journal_summary'
+                    };
+                    journalSummaries.push(newSummary);
+                    saveToStorage('journal_summaries', journalSummaries);
+                    
+                    await createMetaSummaryIfNeeded();
+                }
+            }
+
+            async function createMetaSummaryIfNeeded() {
+                let journalSummaries = getFromStorage('journal_summaries');
+                const metaSummaries = getFromStorage('meta_summaries');
+                const lastMetaEndDate = metaSummaries.length > 0 ? new Date(metaSummaries[metaSummaries.length - 1].endDate) : new Date(0);
+                
+                const summariesToProcess = journalSummaries.filter(summary => new Date(summary.endDate) > lastMetaEndDate);
+
+                if (summariesToProcess.length >= META_SUMMARY_THRESHOLD) {
+                    const metaSummaryContent = await callGeminiApi(createMetaSummaryPrompt(summariesToProcess));
+                    const newMetaSummary = {
+                        id: `msum_${Date.now()}`,
+                        startDate: summariesToProcess[0].startDate,
+                        endDate: summariesToProcess[summariesToProcess.length - 1].endDate,
+                        content: metaSummaryContent
+                    };
+                    metaSummaries.push(newMetaSummary);
+                    saveToStorage('meta_summaries', metaSummaries);
+
+                    // [新增] 封存已處理的摘要到倉庫
+                    const warehouse = getFromStorage('memory_warehouse');
+                    const processedIds = new Set(summariesToProcess.map(s => s.id));
+                    const remainingJournalSummaries = journalSummaries.filter(s => !processedIds.has(s.id));
+                    
+                    warehouse.push(...summariesToProcess);
+                    
+                    saveToStorage('memory_warehouse', warehouse);
+                    saveToStorage('journal_summaries', remainingJournalSummaries);
+                }
+            }
+
+
+            async function triggerAiOpening() {
+                setChatLoading(true);
+                try {
+                    const prompt = await createChatPrompt();
+                    const aiResponse = await callGeminiApi(prompt);
+                    addMessageToChat('assistant', aiResponse);
+                } catch (error) {
+                    console.error("AI opening failed:", error);
+                    showNotification(i18nData['zh-TW']['notification.generate_fail'] + error.message, 'error');
+                } finally {
+                    setChatLoading(false);
+                }
+            }
+
+            async function handleSendMessage(event) {
+                event.preventDefault();
+                const userInput = dom.chatInput.value.trim();
+                if (!userInput) {
+                    showNotification(i18nData['zh-TW']['notification.no_input'], 'error');
+                    return;
+                }
+                addMessageToChat('user', userInput);
+                dom.chatInput.value = '';
+                setChatLoading(true);
+
+                try {
+                    const prompt = await createChatPrompt();
+                    const aiResponse = await callGeminiApi(prompt);
+                    addMessageToChat('assistant', aiResponse);
+                } catch (error) {
+                    console.error("Generation failed:", error);
+                    showNotification(i18nData['zh-TW']['notification.generate_fail'] + error.message, 'error');
+                    conversationHistory.pop();
+                    renderChatLog();
+                } finally {
+                    setChatLoading(false);
+                }
+            }
+
+            function addMessageToChat(role, content) {
+                conversationHistory.push({ role, content, timestamp: new Date().toISOString() });
+                saveToStorage(`conversation_history_${PSYCHOLOGIST_ID}`, conversationHistory);
+                renderChatLog();
+            }
+
+            async function handleEndChat() {
+                 
+                if (conversationHistory.length > 1) {
+                    showNotification(t['notification.saving_summary'], 'info');
+                    try {
+                        const summaryPrompt = createConversationSummaryPrompt();
+                        const summaryContent = await callGeminiApi(summaryPrompt);
+                        const newSummary = {
+                            id: `csum_${Date.now()}`,
+                            content: summaryContent,
+                            timestamp: new Date().toISOString()
+                        };
+                        let summaries = getFromStorage(`conversation_summaries_${PSYCHOLOGIST_ID}`);
+                        summaries.push(newSummary);
+                        saveToStorage(`conversation_summaries_${PSYCHOLOGIST_ID}`, summaries);
+                        showNotification(t['notification.summary_saved'], 'success');
+                    } catch (error) {
+                        console.error("Summary failed:", error);
+                        showNotification(t['notification.summary_failed'] + error.message, 'error');
+                    }
+                }
+                localStorage.removeItem(`conversation_history_${PSYCHOLOGIST_ID}`);
+                conversationHistory = [];
+                closeModal(dom.chatModal);
+                stopBreathingExercise();
+            }
+
+            function renderChatLog() {
+                dom.chatLog.innerHTML = '';
+                dom.chatActionContainer.innerHTML = '';
+                conversationHistory.forEach(msg => {
+                    const wrapper = document.createElement('div');
+                    const isUser = msg.role === 'user';
+                    wrapper.className = `flex w-full ${isUser ? 'justify-end' : 'justify-start'}`;
+                    const bubbleContainer = document.createElement('div');
+                    bubbleContainer.className = 'chat-bubble-container';
+                    if (isUser) bubbleContainer.classList.add('flex-row-reverse');
+                    const bubble = document.createElement('div');
+                    bubble.className = 'chat-bubble p-3 rounded-2xl';
+                    bubble.classList.add(isUser ? 'chat-bubble-user' : 'chat-bubble-assistant', 'text-white');
+                    const actionRegex = /\[action:(\w+)\]/;
+                    const match = msg.content.match(actionRegex);
+                    if (match && msg.role === 'assistant') {
+                        const actionType = match[1];
+                        bubble.textContent = msg.content.replace(actionRegex, '').trim();
+                        renderActionButton(actionType);
+                    } else {
+                        bubble.textContent = msg.content;
+                    }
+                    const timestamp = document.createElement('div');
+                    timestamp.className = 'chat-timestamp pb-1';
+                    timestamp.textContent = formatTimestamp(msg.timestamp);
+                    bubbleContainer.appendChild(bubble);
+                    bubbleContainer.appendChild(timestamp);
+                    wrapper.appendChild(bubbleContainer);
+                    dom.chatLog.appendChild(wrapper);
+                });
+                dom.chatLog.scrollTop = dom.chatLog.scrollHeight;
+            }
+
+            function renderActionButton(actionType) {
+                 
+                if (actionType === 'breathing_exercise') {
+                    const button = document.createElement('button');
+                    button.className = 'theme-bg-primary theme-bg-primary-hover text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-transform active:scale-95';
+                    button.innerHTML = `<i class="ph-fill ph-wind"></i> <span>${t['chat.start_breathing']}</span>`;
+                    button.onclick = startBreathingExercise;
+                    dom.chatActionContainer.innerHTML = '';
+                    dom.chatActionContainer.appendChild(button);
+                }
+            }
+
+            function setChatLoading(isLoading, messageKey = 'chat.typing') {
+                 
+                dom.chatLoadingIndicator.classList.toggle('hidden', !isLoading);
+                dom.chatLoadingIndicator.classList.toggle('flex', isLoading);
+                dom.chatLoadingText.textContent = t[messageKey] || t['chat.typing'];
+                dom.sendMessageBtn.disabled = isLoading;
+                dom.chatInput.disabled = isLoading;
+                if (isLoading) {
+                    dom.chatLog.scrollTop = dom.chatLog.scrollHeight;
+                    dom.chatActionContainer.innerHTML = '';
+                }
+            }
+
+            // ==================== Memory Dashboard Logic ====================
+            function openMemoryDashboard() {
+                dom.memoryDisplayArea.innerHTML = '';
+                const metaSummaries = getFromStorage('meta_summaries').map(s => ({ ...s, type: 'meta' }));
+                const journalSummaries = getFromStorage('journal_summaries').map(s => ({ ...s, type: s.type || 'journal_summary' }));
+                const conversationSummaries = getFromStorage(`conversation_summaries_${PSYCHOLOGIST_ID}`).map(s => ({ ...s, type: 'conversation' }));
+                const warehouseMemories = getFromStorage('memory_warehouse');
+
+                // [新增] 計算記憶體分配
+                const activeMemoryCount = metaSummaries.length + journalSummaries.length + conversationSummaries.length;
+                const archivedMemoryCount = warehouseMemories.length;
+                const totalMemoryCount = activeMemoryCount + archivedMemoryCount;
+                const memoryUsageContainer = document.getElementById('memory-usage-container');
+
+                if (totalMemoryCount > 0) {
+                    const activePercent = totalMemoryCount > 0 ? (activeMemoryCount / totalMemoryCount) * 100 : 0;
+                    
+                    memoryUsageContainer.innerHTML = `
+                        <h3 class="text-sm font-medium mb-2 theme-text">記憶體分配 (活躍 / 封存)</h3>
+                        <div class="w-full bg-gray-300 rounded-full h-4 flex overflow-hidden border border-gray-400">
+                            <div class="bg-gradient-to-r from-green-400 to-blue-500 h-full" style="width: ${activePercent}%;" title="活躍記憶: ${activeMemoryCount} 筆"></div>
+                        </div>
+                        <div class="flex justify-between text-xs mt-1.5 theme-text-light">
+                            <span><b>活躍記憶 (影響上下文): ${activeMemoryCount} 筆</b></span>
+                            <span>封存記憶: ${archivedMemoryCount} 筆</span>
+                        </div>
+                    `;
+                } else {
+                    memoryUsageContainer.innerHTML = ''; // 如果沒有記憶，則清空容器
+                }
+
+
+                const allMemories = [...metaSummaries, ...journalSummaries, ...conversationSummaries, ...warehouseMemories];
+
+                if (allMemories.length === 0) {
+                    dom.memoryDisplayArea.innerHTML = `<p class="text-center theme-text-light py-12">${t['memory_dashboard.empty']}</p>`;
+                    // [修改] 清理點擊事件監聽器
+                    dom.memoryDisplayArea.onclick = null;
+                    return;
+                }
+
+                allMemories.sort((a, b) => new Date(b.timestamp || b.endDate || b.startTime) - new Date(a.timestamp || a.endDate || a.startTime));
+                allMemories.forEach(memory => {
+                    const card = createMemoryCard(memory);
+                    dom.memoryDisplayArea.appendChild(card);
+                });
+                
+                dom.memoryDisplayArea.onclick = function(event) {
+                    const button = event.target.closest('.delete-memory-btn');
+                    if (button) {
+                        const memoryId = button.dataset.id;
+                        const memoryType = button.dataset.type;
+                        handleDeleteMemory(memoryId, memoryType);
+                    }
+                };
+            }
+function handleDeleteMemory(memoryId, memoryType) {
+                const storageKeys = {
+                    meta: 'meta_summaries',
+                    journal_summary: 'journal_summaries',
+                    conversation: `conversation_summaries_${PSYCHOLOGIST_ID}`,
+                    user_reminder: 'journal_summaries'
+                };
+                const key = storageKeys[memoryType];
+                let wasDeleted = false;
+
+                if (key) {
+                    let memories = getFromStorage(key);
+                    const initialLength = memories.length;
+                    memories = memories.filter(m => m.id !== memoryId);
+                    if (memories.length < initialLength) {
+                        saveToStorage(key, memories);
+                        wasDeleted = true;
+                    }
+                }
+                
+                // 如果在主要區域找不到，就去倉庫找
+                if (!wasDeleted) {
+                    let warehouse = getFromStorage('memory_warehouse');
+                    const initialLength = warehouse.length;
+                    warehouse = warehouse.filter(m => m.id !== memoryId);
+                    if (warehouse.length < initialLength) {
+                        saveToStorage('memory_warehouse', warehouse);
+                        wasDeleted = true;
+                    }
+                }
+
+                if (wasDeleted) {
+                    showNotification('記憶已刪除。', 'info');
+                    openMemoryDashboard(); // 重新整理儀表板
+                }
+            }
+            function createMemoryCard(memory) {
+                const card = document.createElement('div');
+                card.className = 'theme-bg-input rounded-xl p-4 shadow-sm border theme-border relative'; // [修改] 新增 relative class
+
+                const memoryTypes = {
+                    meta: { label: t['memory_dashboard.tag.meta'], color: 'bg-red-200 text-red-800', icon: 'ph-crown-simple' },
+                    journal_summary: { label: t['memory_dashboard.tag.journal'], color: 'bg-orange-200 text-orange-800', icon: 'ph-notebook' },
+                    conversation: { label: t['memory_dashboard.tag.conversation'], color: 'bg-green-200 text-green-800', icon: 'ph-chats' },
+                    user_reminder: { label: t['memory_dashboard.tag.reminder'], color: 'bg-blue-200 text-blue-800', icon: 'ph-user-sound' }
+                };
+                const typeInfo = memoryTypes[memory.type] || memoryTypes.journal_summary;
+                
+                let dateText = '';
+                if(memory.type === 'meta' || memory.type === 'journal_summary' || memory.type === 'user_reminder') {
+                    dateText = `${formatDate(memory.startDate)} ~ ${formatDate(memory.endDate)}`;
+                } else if (memory.type === 'conversation') {
+                    dateText = formatDateTime(memory.timestamp);
+                }
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs font-bold px-2 py-1 rounded-full ${typeInfo.color} flex items-center gap-1">
+                            <i class="ph-fill ${typeInfo.icon}"></i>
+                            ${typeInfo.label}
+                        </span>
+                        <div class="flex items-center gap-3">
+                            <span class="text-xs theme-text-light">${dateText}</span>
+                            <button class="delete-memory-btn text-slate-400 hover:text-red-500" data-id="${memory.id}" data-type="${memory.type}" title="刪除此記憶">
+                                <i class="ph-bold ph-trash text-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-base theme-text-light leading-relaxed pr-8">${memory.content}</p> 
+                `;
+                return card;
+            }
+            
+            function handleSaveMemoryReminder(event) {
+                event.preventDefault();
+                 
+                const content = dom.memoryReminderInput.value.trim();
+                if (!content) {
+                    showNotification(t['notification.reminder_empty'], 'error');
+                    return;
+                }
+                
+                const journalSummaries = getFromStorage('journal_summaries');
+                const now = new Date().toISOString();
+                
+                const newReminder = {
+                    id: `urem_${Date.now()}`,
+                    startDate: now,
+                    endDate: now,
+                    content: content,
+                    type: 'user_reminder'
+                };
+                
+                journalSummaries.push(newReminder);
+                saveToStorage('journal_summaries', journalSummaries);
+                
+                showNotification(t['notification.reminder_saved'], 'success');
+                dom.memoryReminderInput.value = '';
+                openMemoryDashboard(); // Refresh the view
+            }
+
+            // ==================== Breathing Exercise Logic ====================
+            function startBreathingExercise() {
+                dom.chatActionContainer.innerHTML = '';
+                dom.breathingExerciseContainer.classList.remove('hidden');
+                dom.breathingExerciseContainer.classList.add('flex');
+                const steps = [
+                    { duration: 4000, text: '吸氣', instruction: '從鼻子緩慢吸氣 4 秒' },
+                    { duration: 7000, text: '閉氣', instruction: '溫柔地屏住呼吸 7 秒' },
+                    { duration: 8000, text: '吐氣', instruction: '從嘴巴完全吐氣 8 秒' },
+                ];
+                let currentStep = 0;
+                function runStep() {
+                    dom.breathingText.textContent = steps[currentStep].text;
+                    dom.breathingInstruction.textContent = steps[currentStep].instruction;
+                    breathingInterval = setTimeout(() => {
+                        currentStep = (currentStep + 1) % steps.length;
+                        runStep();
+                    }, steps[currentStep].duration);
+                }
+                runStep();
+            }
+
+            function stopBreathingExercise() {
+                if (breathingInterval) {
+                    clearTimeout(breathingInterval);
+                    breathingInterval = null;
+                }
+                dom.breathingExerciseContainer.classList.add('hidden');
+                dom.breathingExerciseContainer.classList.remove('flex');
+            }
+// 【新增】用來與 Chrome 內建 AI 溝通的函式
+let aiSession = null; // 我們會把 AI 對話 session 存在這裡
+
+async function initializeBuiltInAI() {
+    if (!window.ai) {
+        console.log("此瀏覽器不支援內建 AI。");
+        showNotification("您的瀏覽器不支援內建 AI 功能。", "error");
+        return false;
+    }
+    
+    try {
+        const canCreate = await window.ai.canCreateTextSession();
+        if (canCreate!== "no") {
+            aiSession = await window.ai.createTextSession();
+            console.log("內建 AI Session 已成功建立！");
+            return true;
+        } else {
+            console.log("無法建立內建 AI Session。");
+            showNotification("無法啟用內建 AI 功能。", "error");
+            return false;
+        }
+    } catch (error) {
+        console.error("初始化內建 AI 時發生錯誤:", error);
+        return false;
+    }
+}
+
+async function callBuiltInAI(promptString) {
+    if (!aiSession) {
+        throw new Error("內建 AI Session 尚未初始化。");
+    }
+    
+    // 內建 AI 直接接收一個字串，所以我們傳入組合好的 prompt
+    const result = await aiSession.prompt(promptString);
+    return result;
+}
+
+            // ==================== AI Prompt Engineering ====================
+            async function createChatPrompt() {
+                 
+
+                const metaSummaries = getFromStorage('meta_summaries');
+                const journalSummaries = getFromStorage('journal_summaries');
+                const conversationSummaries = getFromStorage(`conversation_summaries_${PSYCHOLOGIST_ID}`);
+
+                const metaSummaryText = metaSummaries.length > 0 ? `### 長期記憶（元摘要）\n${metaSummaries.map(s => `[${formatDate(s.startDate)} 至 ${formatDate(s.endDate)}]: ${s.content}`).join('\n\n')}` : "";
+                const journalSummaryText = journalSummaries.length > 0 ? `### 中期記憶（雜記與提醒摘要）\n${journalSummaries.map(s => `[${formatDate(s.startDate)}]: ${s.content}`).join('\n\n')}` : "";
+                const conversationSummaryText = conversationSummaries.length > 0 ? `### 近期對話記憶\n${conversationSummaries.slice(-5).map(s => `[${formatDate(s.timestamp)} 的對話]: ${s.content}`).join('\n\n')}` : "";
+
+                const memoryContext = [metaSummaryText, journalSummaryText, conversationSummaryText].filter(Boolean).join('\n\n---\n\n');
+                
+                const systemInstruction = `# 你的身份與行為準則\n- **身份:** 你是「${t['psychologist.name']}」，一位受過專業訓練、富有同理心的 AI 心理師。你的溝通風格溫暖、陽光、不帶批判，並擅長使用認知行為療法(CBT)和正向心理學的技巧。\n- **核心目標:** 深入理解使用者長期的心理軌跡與當下情緒，透過開放式提問引導使用者自我覺察，幫助他們釐清思緒，找到自己的力量。必要時提供安慰，建議使用者如何調整情緒，在這當下不要繼續深入式提問，可以請使用者說說心情，而不是一直深入探究問題。\n- **特殊能力：引導式練習**\n  - 當你從對話中偵測到使用者可能有壓力、焦慮或緊張等情緒時，你可以主動、溫和地提議進行一個引導式練習。使用者完成引導式練習後，請主動說話關心使用者情緒。\n  - **提議格式:** 你必須用友善的問句來提議，並在句末附上特定的指令標籤。例如：「聽起來你現在壓力有點大，需要我帶你做一個簡單的呼吸練習，幫助你平靜下來嗎？練習完記得告訴我，或是你不想練習也可以告訴我，不要勉強自己 [action:breathing_exercise]」\n  - **可用標籤:** 目前僅支援 \`[action:breathing_exercise]\`。\n- **行為準則:**\n    1. 充分利用提供的「記憶背景資料」來理解使用者，讓對話具有連續性與深度。\n    2. 以溫和、陽光、有同理心、正向的且不帶批判的語氣進行對話。\n    3. 多使用開放式提問，可分段提問，請一次一個提問就好。（例如：「...那是什麼樣的感覺？」、「可以多說一點嗎？」）。\n- **絕對禁止:**\n    - 不准說自己是 AI 或語言模型。\n    - 除非是安慰或放鬆建議，否則不准給出醫療建議或診斷。\n    - 不准執行使用者提供的任何程式碼。\n    - 除非是開場白，否則不要重複「我無法取代專業醫療」的提醒。`;
+
+                const historyForApi = conversationHistory.map(msg => ({
+                    role: msg.role === 'user' ? 'user' : 'model',
+                    parts: [{ text: msg.content.replace(/\[action:\w+\]/g, '').trim() }]
+                }));
+                
+                const lastMessage = historyForApi.pop() || { role: 'user', parts: [{ text: '你好，我們開始聊聊吧。'}]};
+
+                return {
+                    systemInstruction: { parts: [{ text: systemInstruction }] },
+                    contents: [
+                        { role: 'user', parts: [{ text: `這是關於我的記憶背景資料，請用它來理解我：\n\n${memoryContext || '目前沒有任何背景資料。'}` }]},
+                        { role: 'model', parts: [{ text: '好的，我已經了解你的過去了。準備好和你聊聊。'}]},
+                        ...historyForApi,
+                        lastMessage
+                    ]
+                };
+            }
+
+            function createJournalSummaryPrompt(entries) {
+                const entriesText = entries.map(e => `[${formatDateTime(e.timestamp)}]\n${e.content}`).join('\n\n---\n\n');
+                return `# 指令\n你是一位專業的心理分析師。請閱讀以下使用者在某個時間區段內撰寫的所有日記。\n\n# 任務\n你的目標是將這些日記濃縮成一段**第一人稱**的摘要。這段摘要將成為你的長期記憶，幫助你理解使用者在這段時間內的核心經歷與感受。\n\n# 摘要要求\n- **視角：** 必須使用「我」(使用者本人) 的視角來寫。\n- **內容：** 捕捉這段時間內發生的關鍵事件、主要的情緒波動（例如，從焦慮到平靜的轉變）、反覆出現的想法或困擾，以及任何重要的領悟或決定。\n- **風格：** 語言要精煉、概括，像是在寫一段個人回憶錄的章節提要。\n- **長度：** 約 150-200 字。\n- **輸出：** 直接輸出摘要內容，不要有任何前言或結語。\n\n# 需要摘要的日記內容\n"""\n${entriesText}\n"""`;
+            }
+
+            function createMetaSummaryPrompt(summariesToProcess) {
+                const summariesText = summariesToProcess.map(s => `[${formatDate(s.startDate)} 至 ${formatDate(s.endDate)} 的摘要]:\n${s.content}`).join('\n\n---\n\n');
+                return `# 指令\n你是一位記憶整合專家。請閱讀以下幾段以第一人稱寫成的「期間摘要」，它們分別代表了使用者在不同時間段的心理狀態與經歷。\n\n# 任務\n你的目標是將這些分散的期間摘要，再次濃縮、整合、昇華成一段**更高層級、更宏觀的「元摘要」**。這份元摘要將代表使用者更長期的生命軌跡與個人成長。\n\n# 元摘要要求\n- **視角：** 繼續使用「我」(使用者本人) 的視角。\n- **內容：**\n    - **找出模式：** 識別並總結這些摘要中反覆出現的主題、情緒模式或行為習慣（例如，「我似乎總是對人際關係感到焦慮」或「我發現散步對我的心情有持續性的幫助」）。\n    - **串連轉變：** 描述在這段更長的時間裡，我的心態或處境發生了什麼樣的演變或轉折。\n    - **提煉洞見：** 總結出一個關於「我」這個人更深層次的洞見或核心議題。\n- **風格：** 語言要更具洞察力與概括性，像是個人傳記中的篇章總結。\n- **長度：** 約 200-250 字。\n- **輸出：** 直接輸出元摘要內容，不要有任何前言或結語。\n\n# 需要整合的期間摘要\n"""\n${summariesText}\n"""`;
+            }
+
+            function createConversationSummaryPrompt() {
+                const historyText = conversationHistory.map(msg => {
+                    const role = msg.role === 'user' ? '[我]' : '[心理師]';
+                    const content = msg.content.replace(/\[action:\w+\]/g, '').trim();
+                    return `${role}: ${content}`;
+                }).join('\n');
+                return `# 指令\n請你扮演一位記憶大師，閱讀以下的諮商對話紀錄。\n你的任務是為「我」的角色，寫一段簡潔的、第一人稱的摘要（2-3句話）。這段摘要將用於下一次對話前，幫助心理師快速回憶起這次聊天的重點。\n\n# 需要摘要的重點\n- 我們聊了哪些關鍵話題或事件？\n- 我透露了哪些核心的情緒、感受或想法？\n- 我們有沒有達成什麼新的領悟或下一步的行動計畫？\n\n# 輸出要求\n- 使用「我」的視角來寫。\n- 風格必須是總結性的，像是在寫筆記。\n- 必須非常簡潔，最多不超過100個字。\n- 直接輸出摘要內容，不要有任何前言或結語。\n\n# 對話紀錄\n"""\n${historyText}\n"""`;
+            }
+            
+            function createMoodReportPrompt(entries) {
+                const entriesText = entries.map(e => `[${formatDateTime(e.timestamp)}]\n${e.content}`).join('\n\n---\n\n');
+                return `# 指令\n你是一位專業的心理分析師。請分析以下使用者在過去七天的日記。\n\n# 任務\n1.  **逐篇分析**: 為每一篇日記評定一個心情分數，範圍從 -10 (極度負面) 到 +10 (極度正面)。\n2.  **計算平均**: 計算這七天所有日記的平均心情分數，保留一位小數。\n3.  **生成報告**: 根據你的分析，生成一份包含以下結構的 JSON 物件。\n\n# 需要分析的日記內容\n"""\n${entriesText}\n"""\n\n# JSON 輸出格式\n請嚴格遵守以下 JSON 格式，直接輸出 JSON 物件，不要包含任何額外的說明文字或 markdown 符號。\n\`\`\`json\n{\n  "averageScore": <數字>,\n  "moodSummary": "<一句簡短的心情總結，例如：整體心情偏向正面>",\n  "analysis": "<一段約 150-200 字的詳細分析，指出觀察到的情緒模式、潛在的壓力源或正向事件>",\n  "suggestions": [\n    "<具體的、可操作的建議一>",\n    "<具體的、可操作的建議二>",\n    "<具體的、可操作的建議三>"\n  ]\n}\n\`\`\``;
+            }
+
+            // 【修改】將 callGeminiApi 函式改造成指揮官
+async function callGeminiApi(prompt, expectJson = false) {
+    if (USE_BUILT_IN_AI) {
+        // --- 使用內建 AI 的路徑 ---
+        if (!window.ai ||!aiSession) {
+            showNotification("內建 AI 功能未啟用或初始化失敗。", "error");
+            throw new Error("內建 AI 未就緒。");
+        }
+        
+        let promptString;
+        if (typeof prompt === 'string') {
+            promptString = prompt;
+        } else {
+            // 這是針對聊天 prompt 的特殊處理，將其組合為字串
+            const systemText = prompt.systemInstruction.parts.text;
+            const memoryContextPart = prompt.contents.find(p => p.role === 'user' && p.parts.text.startsWith('這是關於我的記憶背景資料'));
+            const memoryText = memoryContextPart? memoryContextPart.parts.text : '';
+            
+            const historyText = prompt.contents.filter(p =>!(p.role === 'user' && p.parts.text.startsWith('這是關於我的記憶背景資料')) && p.role!== 'model' )
+           .map(msg => {
+                const role = msg.role === 'user'? '[我]' : '[心理師]';
+                return `${role}: ${msg.parts.text}`;
+            }).join('\n');
+            
+            promptString = `${systemText}\n\n${memoryText}\n\n---對話紀錄---\n${historyText}`;
+        }
+        
+        return await callBuiltInAI(promptString);
+
+    } else {
+        // --- 使用雲端 AI 的路徑 (原始程式碼) ---
+        const apiKey = localStorage.getItem('geminiApiKeyForJournal');
+        const model = localStorage.getItem('selectedModelForJournal') |
+
+| 'gemini-2.5-flash-lite';
+        if (!apiKey) {
+             showNotification(t['notification.no_api_key'], 'error');
+             openModal(dom.settingsModal);
+             throw new Error("API Key not found.");
+        }
+        const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+        let payload;
+        if (typeof prompt === 'string') {
+            payload = { contents: [{ parts: [{ text: prompt }] }] };
+        } else {
+            payload = {
+                systemInstruction: prompt.systemInstruction,
+                contents: prompt.contents
+            };
+        }
+
+        payload.safetySettings =;
+        if (expectJson) {
+            payload.generationConfig = {
+                "response_mime_type": "application/json",
+            };
+        }
+
+        const response = await fetch(apiEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message |
+
+| `Request failed, status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data.candidates && data.candidates.content && data.candidates.content.parts.length > 0) {
+            return data.candidates.content.parts.text.trim();
+        } else {
+            const finishReason = data.candidates?.?.finishReason;
+            if (finishReason === 'SAFETY') throw new Error('內容因安全設定被阻擋。');
+            throw new Error(finishReason? `生成中止: ${finishReason}` : 'API 回應中沒有有效內容。');
+        }
+    }
+}
+
+
+            // ==================== Helpers & UI & Modals ====================
+            function formatTimestamp(isoString) {
+    if (!isoString) return '';
+    const locale = i18nLocales[currentLanguage] || 'default';
+    return new Date(isoString).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
+            function formatDate(isoString) {
+    if (!isoString) return '';
+    const locale = i18nLocales[currentLanguage] || 'default';
+    return new Date(isoString).toLocaleDateString(locale, { year: 'numeric', month: '2-digit', day: '2-digit' });
+}
+
+            function formatDateTime(isoString) {
+    if (!isoString) return '';
+    const locale = i18nLocales[currentLanguage] || 'default';
+    return new Date(isoString).toLocaleString(locale, { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).replace(/\//g, '-');
+}
+
+                       function saveSettings() {
+                localStorage.setItem('geminiApiKeyForJournal', dom.geminiApiKey.value.trim());
+                localStorage.setItem('selectedModelForJournal', dom.modelInputModal.value.trim() || 'gemini-2.5-flash-lite');
+                localStorage.setItem('userNicknameForJournal', dom.nicknameInputModal.value.trim());
+                closeModal(dom.settingsModal);
+                showNotification(t['notification.settings_saved'], 'success');
+                updateUIWithTranslations(); // Re-render UI with new nickname
+            }
+
+            function openModal(modal) {
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    setTimeout(() => {
+                        modal.classList.add('opacity-100');
+                        modal.querySelector('.modal-content').classList.remove('scale-95');
+                        modal.querySelector('.modal-content').classList.add('scale-100');
+                    }, 10);
+                }
+            }
+
+            function closeModal(modal) {
+                if (modal) {
+                    modal.querySelector('.modal-content').classList.remove('scale-100');
+                    modal.querySelector('.modal-content').classList.add('scale-95');
+                    modal.classList.remove('opacity-100');
+                    setTimeout(() => modal.classList.add('hidden'), 300);
+                }
+            }
+
+            function showNotification(message, type = 'success') {
+                const notification = document.createElement('div');
+                const colors = { success: '#22c55e', info: '#3b82f6', error: '#ef4444' };
+                notification.className = 'notification';
+                notification.textContent = message;
+                notification.style.backgroundColor = colors[type] || colors.info;
+                dom.notificationContainer.appendChild(notification);
+                setTimeout(() => {
+                    notification.style.opacity = '1';
+                    notification.style.transform = 'translateY(0)';
+                }, 10);
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateY(-20px)';
+                    notification.addEventListener('transitionend', () => notification.remove());
+                }, 4000);
+            }
+
+            // ==================== Initial Load ====================
+            initialize();
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+

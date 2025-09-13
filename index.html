@@ -428,7 +428,8 @@
                      <label for="nickname-input-modal" class="block mb-2 text-sm font-medium" data-i18n="settings.nickname">你的暱稱</label>
                      <input type="text" id="nickname-input-modal" class="w-full theme-bg-input theme-border theme-text rounded-lg focus:ring-2 theme-ring-focus focus:border-transparent block p-3" data-i18n-placeholder="settings.nickname_placeholder">
                  </div>
-                 <div>
+
+                 <!-- <div>
                      <label for="model-input-modal" class="block mb-2 text-sm font-medium" data-i18n="settings.model_select">AI 模型名稱</label>
                      <input type="text" id="model-input-modal" class="w-full theme-bg-input theme-border theme-text rounded-lg focus:ring-2 theme-ring-focus focus:border-transparent block p-3" data-i18n-placeholder="settings.model_placeholder">
                  </div>
@@ -436,7 +437,7 @@
                      <label for="gemini-api-key" class="block mb-2 text-sm font-medium text-yellow-700" data-i18n="settings.api_key_label">您的 Google Gemini API 金鑰</label>
                      <input type="password" id="gemini-api-key" class="w-full theme-bg-input theme-border theme-text rounded-lg focus:ring-2 theme-ring-focus focus:border-transparent block p-3" data-i18n-placeholder="settings.api_key_placeholder">
                      <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-xs text-blue-600 hover:text-blue-500 mt-2 inline-block" data-i18n="settings.get_api_key">點此免費獲取金鑰 ↗</a>
-                 </div>
+                 </div>-->
                  <hr class="theme-border"/>
                  <div>
                     <h3 class="text-lg font-bold mb-3" data-i18n="settings.data_management">資料管理</h3>
@@ -487,6 +488,7 @@ let t; // This will hold the translations for the current language
             const META_SUMMARY_THRESHOLD = 5; // 每5個期間摘要，就濃縮成一個元摘要
             let conversationHistory = [];
             let breathingInterval = null;
+           const USE_BUILT_IN_AI = true;
 
             // ==================== DOM Elements Cache ====================
             const dom = {};
@@ -837,6 +839,9 @@ let t; // This will hold the translations for the current language
 
             // ==================== Initialization ====================
                        function initialize() {
+if (USE_BUILT_IN_AI) {
+        initializeBuiltInAI();
+    }
     const savedApiKey = localStorage.getItem('geminiApiKeyForJournal');
     const savedModel = localStorage.getItem('selectedModelForJournal') || 'gemini-2.5-flash-lite';
     const savedNickname = localStorage.getItem('userNicknameForJournal') || '';
@@ -1693,6 +1698,42 @@ function handleDeleteMemory(memoryId, memoryType) {
                 dom.breathingExerciseContainer.classList.add('hidden');
                 dom.breathingExerciseContainer.classList.remove('flex');
             }
+// 【新增】用來與 Chrome 內建 AI 溝通的函式
+let aiSession = null; // 我們會把 AI 對話 session 存在這裡
+
+async function initializeBuiltInAI() {
+    if (!window.ai) {
+        console.log("此瀏覽器不支援內建 AI。");
+        showNotification("您的瀏覽器不支援內建 AI 功能。", "error");
+        return false;
+    }
+    
+    try {
+        const canCreate = await window.ai.canCreateTextSession();
+        if (canCreate!== "no") {
+            aiSession = await window.ai.createTextSession();
+            console.log("內建 AI Session 已成功建立！");
+            return true;
+        } else {
+            console.log("無法建立內建 AI Session。");
+            showNotification("無法啟用內建 AI 功能。", "error");
+            return false;
+        }
+    } catch (error) {
+        console.error("初始化內建 AI 時發生錯誤:", error);
+        return false;
+    }
+}
+
+async function callBuiltInAI(promptString) {
+    if (!aiSession) {
+        throw new Error("內建 AI Session 尚未初始化。");
+    }
+    
+    // 內建 AI 直接接收一個字串，所以我們傳入組合好的 prompt
+    const result = await aiSession.prompt(promptString);
+    return result;
+}
 
             // ==================== AI Prompt Engineering ====================
             async function createChatPrompt() {
@@ -1752,54 +1793,89 @@ function handleDeleteMemory(memoryId, memoryType) {
                 return `# 指令\n你是一位專業的心理分析師。請分析以下使用者在過去七天的日記。\n\n# 任務\n1.  **逐篇分析**: 為每一篇日記評定一個心情分數，範圍從 -10 (極度負面) 到 +10 (極度正面)。\n2.  **計算平均**: 計算這七天所有日記的平均心情分數，保留一位小數。\n3.  **生成報告**: 根據你的分析，生成一份包含以下結構的 JSON 物件。\n\n# 需要分析的日記內容\n"""\n${entriesText}\n"""\n\n# JSON 輸出格式\n請嚴格遵守以下 JSON 格式，直接輸出 JSON 物件，不要包含任何額外的說明文字或 markdown 符號。\n\`\`\`json\n{\n  "averageScore": <數字>,\n  "moodSummary": "<一句簡短的心情總結，例如：整體心情偏向正面>",\n  "analysis": "<一段約 150-200 字的詳細分析，指出觀察到的情緒模式、潛在的壓力源或正向事件>",\n  "suggestions": [\n    "<具體的、可操作的建議一>",\n    "<具體的、可操作的建議二>",\n    "<具體的、可操作的建議三>"\n  ]\n}\n\`\`\``;
             }
 
-            async function callGeminiApi(prompt, expectJson = false) {
-                const apiKey = localStorage.getItem('geminiApiKeyForJournal');
-                const model = localStorage.getItem('selectedModelForJournal') || 'gemini-2.5-flash-lite';
-                const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            // 【修改】將 callGeminiApi 函式改造成指揮官
+async function callGeminiApi(prompt, expectJson = false) {
+    if (USE_BUILT_IN_AI) {
+        // --- 使用內建 AI 的路徑 ---
+        if (!window.ai ||!aiSession) {
+            showNotification("內建 AI 功能未啟用或初始化失敗。", "error");
+            throw new Error("內建 AI 未就緒。");
+        }
+        
+        let promptString;
+        if (typeof prompt === 'string') {
+            promptString = prompt;
+        } else {
+            // 這是針對聊天 prompt 的特殊處理，將其組合為字串
+            const systemText = prompt.systemInstruction.parts.text;
+            const memoryContextPart = prompt.contents.find(p => p.role === 'user' && p.parts.text.startsWith('這是關於我的記憶背景資料'));
+            const memoryText = memoryContextPart? memoryContextPart.parts.text : '';
+            
+            const historyText = prompt.contents.filter(p =>!(p.role === 'user' && p.parts.text.startsWith('這是關於我的記憶背景資料')) && p.role!== 'model' )
+           .map(msg => {
+                const role = msg.role === 'user'? '[我]' : '[心理師]';
+                return `${role}: ${msg.parts.text}`;
+            }).join('\n');
+            
+            promptString = `${systemText}\n\n${memoryText}\n\n---對話紀錄---\n${historyText}`;
+        }
+        
+        return await callBuiltInAI(promptString);
 
-                let payload;
-                if (typeof prompt === 'string') {
-                    payload = { contents: [{ parts: [{ text: prompt }] }] };
-                } else {
-                    payload = {
-                        systemInstruction: prompt.systemInstruction,
-                        contents: prompt.contents
-                    };
-                }
+    } else {
+        // --- 使用雲端 AI 的路徑 (原始程式碼) ---
+        const apiKey = localStorage.getItem('geminiApiKeyForJournal');
+        const model = localStorage.getItem('selectedModelForJournal') |
 
-                payload.safetySettings = [
-                    { "category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE" },
-                    { "category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE" },
-                    { "category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE" },
-                    { "category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE" }
-                ];
-                
-                if (expectJson) {
-                    payload.generationConfig = {
-                        "response_mime_type": "application/json",
-                    };
-                }
+| 'gemini-2.5-flash-lite';
+        if (!apiKey) {
+             showNotification(t['notification.no_api_key'], 'error');
+             openModal(dom.settingsModal);
+             throw new Error("API Key not found.");
+        }
+        const apiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-                const response = await fetch(apiEndpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+        let payload;
+        if (typeof prompt === 'string') {
+            payload = { contents: [{ parts: [{ text: prompt }] }] };
+        } else {
+            payload = {
+                systemInstruction: prompt.systemInstruction,
+                contents: prompt.contents
+            };
+        }
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error?.message || `Request failed, status: ${response.status}`);
-                }
+        payload.safetySettings =;
+        if (expectJson) {
+            payload.generationConfig = {
+                "response_mime_type": "application/json",
+            };
+        }
 
-                const data = await response.json();
-                if (data.candidates && data.candidates[0].content && data.candidates[0].content.parts.length > 0) {
-                    return data.candidates[0].content.parts[0].text.trim();
-                } else {
-                    const finishReason = data.candidates?.[0]?.finishReason;
-                    if (finishReason === 'SAFETY') throw new Error('內容因安全設定被阻擋。');
-                    throw new Error(finishReason ? `生成中止: ${finishReason}` : 'API 回應中沒有有效內容。');
-                }
-            }
+        const response = await fetch(apiEndpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error?.message |
+
+| `Request failed, status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        if (data.candidates && data.candidates.content && data.candidates.content.parts.length > 0) {
+            return data.candidates.content.parts.text.trim();
+        } else {
+            const finishReason = data.candidates?.?.finishReason;
+            if (finishReason === 'SAFETY') throw new Error('內容因安全設定被阻擋。');
+            throw new Error(finishReason? `生成中止: ${finishReason}` : 'API 回應中沒有有效內容。');
+        }
+    }
+}
+
 
             // ==================== Helpers & UI & Modals ====================
             function formatTimestamp(isoString) {
